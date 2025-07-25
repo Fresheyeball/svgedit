@@ -26,6 +26,25 @@ export const init = canvas => {
 }
 
 /**
+ * Helper function to check if element is a text foreignObject
+ * @param {Element} elem
+ * @returns {boolean}
+ */
+const isTextForeignObject = (elem) => {
+  return elem && elem.tagName === 'foreignObject' && elem.getAttribute('se:type') === 'text'
+}
+
+/**
+ * Helper function to get the div element inside a text foreignObject
+ * @param {Element} fo
+ * @returns {Element|null}
+ */
+const getTextDiv = (fo) => {
+  if (!isTextForeignObject(fo)) return null
+  return fo.querySelector('div')
+}
+
+/**
  * Group: Text edit functions
  * Functions relating to editing text elements.
  * @namespace {PlainObject} textActions
@@ -43,6 +62,26 @@ export const textActionsMethod = (function () {
   let lastX
   let lastY
   let allowDbl
+  let currentTextDiv = null // For foreignObject text editing
+  
+  // Event handlers for foreignObject text editing
+  const handleTextInput = (evt) => {
+    // Trigger change event for undo/redo
+    svgCanvas.call('changed', [curtext])
+  }
+  
+  const handleTextBlur = (evt) => {
+    // Exit text edit mode when div loses focus
+    svgCanvas.textActions.toSelectMode(true)
+  }
+  
+  const handleTextKeydown = (evt) => {
+    // Handle escape key to exit edit mode
+    if (evt.key === 'Escape') {
+      evt.preventDefault()
+      svgCanvas.textActions.toSelectMode(true)
+    }
+  }
 
   /**
    *
@@ -406,18 +445,31 @@ export const textActionsMethod = (function () {
       allowDbl = false
       svgCanvas.setCurrentMode('textedit')
       svgCanvas.selectorManager.requestSelector(curtext).showGrips(false)
-      // Make selector group accept clicks
-      /* const selector = */ svgCanvas.selectorManager.requestSelector(curtext) // Do we need this? Has side effect of setting lock, so keeping for now, but next line wasn't being used
-      // const sel = selector.selectorRect;
-
+      
+      // Check if this is a foreignObject text element
+      if (isTextForeignObject(curtext)) {
+        currentTextDiv = getTextDiv(curtext)
+        if (currentTextDiv) {
+          // Enable editing on the div
+          currentTextDiv.focus()
+          // Select all text on first click
+          const range = document.createRange()
+          range.selectNodeContents(currentTextDiv)
+          const selection = window.getSelection()
+          selection.removeAllRanges()
+          selection.addRange(range)
+          
+          // Add event listeners for content changes
+          currentTextDiv.addEventListener('input', handleTextInput)
+          currentTextDiv.addEventListener('blur', handleTextBlur)
+          currentTextDiv.addEventListener('keydown', handleTextKeydown)
+        }
+        return
+      }
+      
+      // Original text element handling
       svgCanvas.textActions.init()
-
       curtext.style.cursor = 'text'
-
-      // if (supportsEditableText()) {
-      //   curtext.setAttribute('editable', 'simple');
-      //   return;
-      // }
 
       if (!arguments.length) {
         setCursor()
@@ -437,6 +489,22 @@ export const textActionsMethod = (function () {
      */
     toSelectMode (selectElem) {
       svgCanvas.setCurrentMode('select')
+      
+      // Handle foreignObject text cleanup
+      if (currentTextDiv) {
+        currentTextDiv.removeEventListener('input', handleTextInput)
+        currentTextDiv.removeEventListener('blur', handleTextBlur)
+        currentTextDiv.removeEventListener('keydown', handleTextKeydown)
+        currentTextDiv.blur()
+        
+        // Check if empty and delete if so
+        if (!currentTextDiv.textContent.trim()) {
+          svgCanvas.deleteSelectedElements()
+        }
+        currentTextDiv = null
+      }
+      
+      // Original text element cleanup
       clearInterval(blinker)
       blinker = null
       if (selblock) {
@@ -445,27 +513,26 @@ export const textActionsMethod = (function () {
       if (cursor) {
         cursor.setAttribute('visibility', 'hidden')
       }
-      curtext.style.cursor = 'move'
+      if (curtext) {
+        curtext.style.cursor = 'move'
+      }
 
       if (selectElem) {
         svgCanvas.clearSelection()
-        curtext.style.cursor = 'move'
-
-        svgCanvas.call('selected', [curtext])
-        svgCanvas.addToSelection([curtext], true)
+        if (curtext) {
+          curtext.style.cursor = 'move'
+          svgCanvas.call('selected', [curtext])
+          svgCanvas.addToSelection([curtext], true)
+        }
       }
-      if (!curtext?.textContent.length) {
-        // No content, so delete
+      
+      // For regular text elements
+      if (curtext && !isTextForeignObject(curtext) && !curtext.textContent.length) {
         svgCanvas.deleteSelectedElements()
       }
 
       textinput.blur()
-
       curtext = false
-
-      // if (supportsEditableText()) {
-      //   curtext.removeAttribute('editable');
-      // }
     },
     /**
      * @param {Element} elem
@@ -490,12 +557,20 @@ export const textActionsMethod = (function () {
       if (!curtext) {
         return
       }
+      
+      // Handle foreignObject text elements
+      if (isTextForeignObject(curtext)) {
+        currentTextDiv = getTextDiv(curtext)
+        if (currentTextDiv) {
+          // Just ensure the div is ready for editing
+          // The actual focus and selection happens in toEditMode
+        }
+        return
+      }
+      
+      // Original text element handling
       let i
       let end
-      // if (supportsEditableText()) {
-      //   curtext.select();
-      //   return;
-      // }
 
       if (!curtext.parentNode) {
         // Result of the ffClone, need to get correct element

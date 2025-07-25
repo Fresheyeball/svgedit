@@ -173,16 +173,38 @@ export const changeSelectedAttributeNoUndoMethod = (attr, newValue, elems) => {
       continue
     }
 
-    let oldval = attr === '#text' ? elem.textContent : elem.getAttribute(attr)
+    // Check if this is a foreignObject text element
+    const isForeignObjectText = elem.tagName === 'foreignObject' && elem.getAttribute('se:type') === 'text'
+    
+    let oldval
+    if (attr === '#text') {
+      if (isForeignObjectText) {
+        const textDiv = elem.querySelector('div')
+        oldval = textDiv ? textDiv.textContent : ''
+      } else {
+        oldval = elem.textContent
+      }
+    } else {
+      oldval = elem.getAttribute(attr)
+    }
+    
     if (!oldval) { oldval = '' }
     if (oldval !== String(newValue)) {
       if (attr === '#text') {
-        // const oldW = utilsGetBBox(elem).width;
-        elem.textContent = newValue
+        if (isForeignObjectText) {
+          // Update the div content inside foreignObject
+          const textDiv = elem.querySelector('div')
+          if (textDiv) {
+            textDiv.textContent = newValue
+          }
+        } else {
+          // const oldW = utilsGetBBox(elem).width;
+          elem.textContent = newValue
 
-        // FF bug occurs on on rotated elements
-        if ((/rotate/).test(elem.getAttribute('transform'))) {
-          elem = ffClone(elem)
+          // FF bug occurs on on rotated elements
+          if ((/rotate/).test(elem.getAttribute('transform'))) {
+            elem = ffClone(elem)
+          }
         }
         // Hoped to solve the issue of moving text with text-anchor="start",
         // but this doesn't actually fix it. Hopefully on the right track, though. -Fyrd

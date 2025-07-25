@@ -921,7 +921,7 @@ const dblClickEvent = (evt) => {
   let mouseTarget = svgCanvas.getMouseTarget(evt)
   const { tagName } = mouseTarget
 
-  if (tagName === 'text' && svgCanvas.getCurrentMode() !== 'textedit') {
+  if ((tagName === 'text' || (tagName === 'foreignObject' && mouseTarget.getAttribute('se:type') === 'text')) && svgCanvas.getCurrentMode() !== 'textedit') {
     const pt = transformPoint(evt.clientX, evt.clientY, svgCanvas.getrootSctm())
     svgCanvas.textActions.select(mouseTarget, pt.x, pt.y)
   }
@@ -1262,23 +1262,52 @@ const mouseDownEvent = (evt) => {
       break
     case 'text':
       svgCanvas.setStarted(true)
-      /* const newText = */ svgCanvas.addSVGElementsFromJson({
-        element: 'text',
-        curStyles: true,
+      // Create foreignObject with div instead of text element
+      const fontSize = parseInt(svgCanvas.getCurText('font_size'))
+      const fontFamily = svgCanvas.getCurText('font_family')
+      const fill = svgCanvas.getCurText('fill')
+      const strokeWidth = svgCanvas.getCurText('stroke_width')
+      const opacity = curShape.opacity
+      
+      // Initial size for the foreignObject
+      const initialWidth = 200
+      const initialHeight = fontSize * 2
+      
+      const newFO = svgCanvas.addSVGElementsFromJson({
+        element: 'foreignObject',
+        curStyles: false,
         attr: {
-          x,
-          y,
+          x: x - initialWidth / 2, // Center horizontally
+          y: y - initialHeight / 2, // Center vertically
+          width: initialWidth,
+          height: initialHeight,
           id: svgCanvas.getNextId(),
-          fill: svgCanvas.getCurText('fill'),
-          'stroke-width': svgCanvas.getCurText('stroke_width'),
-          'font-size': svgCanvas.getCurText('font_size'),
-          'font-family': svgCanvas.getCurText('font_family'),
-          'text-anchor': 'middle',
-          'xml:space': 'preserve',
-          opacity: curShape.opacity
+          opacity: opacity,
+          'se:type': 'text' // Custom attribute to identify as text
         }
       })
-      // newText.textContent = 'text';
+      
+      // Create the HTML div inside foreignObject
+      const div = document.createElementNS('http://www.w3.org/1999/xhtml', 'div')
+      div.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml')
+      div.style.width = '100%'
+      div.style.height = '100%'
+      div.style.fontFamily = fontFamily
+      div.style.fontSize = fontSize + 'px'
+      div.style.color = fill
+      div.style.textAlign = 'center'
+      div.style.display = 'flex'
+      div.style.alignItems = 'center'
+      div.style.justifyContent = 'center'
+      div.style.wordWrap = 'break-word'
+      div.style.overflowWrap = 'break-word'
+      div.style.padding = '4px'
+      div.style.boxSizing = 'border-box'
+      div.style.cursor = 'text'
+      div.setAttribute('contenteditable', 'true')
+      div.textContent = 'Text'
+      
+      newFO.appendChild(div)
       break
     case 'path':
     // Fall through

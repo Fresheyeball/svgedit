@@ -602,14 +602,53 @@ const setStrokeAttrMethod = (attr, val) => {
 }
 
 /**
+ * Helper function to check if element is a text foreignObject
+ * @param {Element} elem
+ * @returns {boolean}
+ */
+const isTextForeignObject = (elem) => {
+  return elem && elem.tagName === 'foreignObject' && elem.getAttribute('se:type') === 'text'
+}
+
+/**
+ * Helper function to get text div from foreignObject
+ * @param {Element} fo
+ * @returns {Element|null}
+ */
+const getTextDiv = (fo) => {
+  if (!isTextForeignObject(fo)) return null
+  return fo.querySelector('div')
+}
+
+/**
+ * Helper function to filter for all text elements (text and foreignObject text)
+ * @param {Element[]} elements
+ * @returns {Element[]}
+ */
+const filterTextElements = (elements) => {
+  return elements.filter(el => el?.tagName === 'text' || isTextForeignObject(el))
+}
+
+/**
  * Check if all selected text elements are in bold.
  * @function module:svgcanvas.SvgCanvas#getBold
  * @returns {boolean} `true` if all selected elements are bold, `false` otherwise.
  */
 const getBoldMethod = () => {
   const selectedElements = svgCanvas.getSelectedElements()
-  const textElements = selectedElements.filter(el => el?.tagName === 'text')
-  return textElements.every(el => el.getAttribute('font-weight') === 'bold')
+  const textElements = filterTextElements(selectedElements)
+  return textElements.every(el => {
+    if (el.tagName === 'text') {
+      return el.getAttribute('font-weight') === 'bold'
+    } else if (isTextForeignObject(el)) {
+      const textDiv = getTextDiv(el)
+      if (textDiv) {
+        const computedStyle = window.getComputedStyle(textDiv)
+        return computedStyle.fontWeight === 'bold' || parseInt(computedStyle.fontWeight) >= 700
+      }
+    }
+    return false
+  })
 }
 
 /**
@@ -620,9 +659,30 @@ const getBoldMethod = () => {
  */
 const setBoldMethod = (b) => {
   const selectedElements = svgCanvas.getSelectedElements()
-  const textElements = selectedElements.filter(el => el?.tagName === 'text')
-  svgCanvas.changeSelectedAttribute('font-weight', b ? 'bold' : 'normal', textElements)
-  if (!textElements.some(el => el.textContent)) {
+  const textElements = filterTextElements(selectedElements)
+  
+  textElements.forEach(el => {
+    if (el.tagName === 'text') {
+      // Handle regular text elements
+      svgCanvas.changeSelectedAttribute('font-weight', b ? 'bold' : 'normal', [el])
+    } else if (isTextForeignObject(el)) {
+      // Handle foreignObject text elements
+      const textDiv = getTextDiv(el)
+      if (textDiv) {
+        textDiv.style.fontWeight = b ? 'bold' : 'normal'
+      }
+    }
+  })
+  
+  if (!textElements.some(el => {
+    if (el.tagName === 'text') {
+      return el.textContent
+    } else if (isTextForeignObject(el)) {
+      const textDiv = getTextDiv(el)
+      return textDiv ? textDiv.textContent : false
+    }
+    return false
+  })) {
     svgCanvas.textActions.setCursor()
   }
 }
@@ -633,8 +693,19 @@ const setBoldMethod = (b) => {
  */
 const hasTextDecorationMethod = (value) => {
   const selectedElements = svgCanvas.getSelectedElements()
-  const textElements = selectedElements.filter(el => el?.tagName === 'text')
-  return textElements.every(el => (el.getAttribute('text-decoration') || '').includes(value))
+  const textElements = filterTextElements(selectedElements)
+  return textElements.every(el => {
+    if (el.tagName === 'text') {
+      return (el.getAttribute('text-decoration') || '').includes(value)
+    } else if (isTextForeignObject(el)) {
+      const textDiv = getTextDiv(el)
+      if (textDiv) {
+        const computedStyle = window.getComputedStyle(textDiv)
+        return computedStyle.textDecoration.includes(value)
+      }
+    }
+    return false
+  })
 }
 
 /**
@@ -697,8 +768,19 @@ const removeTextDecorationMethod = (value) => {
  */
 const getItalicMethod = () => {
   const selectedElements = svgCanvas.getSelectedElements()
-  const textElements = selectedElements.filter(el => el?.tagName === 'text')
-  return textElements.every(el => el.getAttribute('font-style') === 'italic')
+  const textElements = filterTextElements(selectedElements)
+  return textElements.every(el => {
+    if (el.tagName === 'text') {
+      return el.getAttribute('font-style') === 'italic'
+    } else if (isTextForeignObject(el)) {
+      const textDiv = getTextDiv(el)
+      if (textDiv) {
+        const computedStyle = window.getComputedStyle(textDiv)
+        return computedStyle.fontStyle === 'italic'
+      }
+    }
+    return false
+  })
 }
 
 /**
@@ -709,9 +791,30 @@ const getItalicMethod = () => {
  */
 const setItalicMethod = (i) => {
   const selectedElements = svgCanvas.getSelectedElements()
-  const textElements = selectedElements.filter(el => el?.tagName === 'text')
-  svgCanvas.changeSelectedAttribute('font-style', i ? 'italic' : 'normal', textElements)
-  if (!textElements.some(el => el.textContent)) {
+  const textElements = filterTextElements(selectedElements)
+  
+  textElements.forEach(el => {
+    if (el.tagName === 'text') {
+      // Handle regular text elements
+      svgCanvas.changeSelectedAttribute('font-style', i ? 'italic' : 'normal', [el])
+    } else if (isTextForeignObject(el)) {
+      // Handle foreignObject text elements
+      const textDiv = getTextDiv(el)
+      if (textDiv) {
+        textDiv.style.fontStyle = i ? 'italic' : 'normal'
+      }
+    }
+  })
+  
+  if (!textElements.some(el => {
+    if (el.tagName === 'text') {
+      return el.textContent
+    } else if (isTextForeignObject(el)) {
+      const textDiv = getTextDiv(el)
+      return textDiv ? textDiv.textContent : false
+    }
+    return false
+  })) {
     svgCanvas.textActions.setCursor()
   }
 }
@@ -799,10 +902,31 @@ const getFontFamilyMethod = () => {
 */
 const setFontFamilyMethod = (val) => {
   const selectedElements = svgCanvas.getSelectedElements()
-  const textElements = selectedElements.filter(el => el?.tagName === 'text')
+  const textElements = filterTextElements(selectedElements)
   svgCanvas.setCurText('font_family', val)
-  svgCanvas.changeSelectedAttribute('font-family', val, textElements)
-  if (!textElements.some(el => el.textContent)) {
+  
+  textElements.forEach(el => {
+    if (el.tagName === 'text') {
+      // Handle regular text elements
+      svgCanvas.changeSelectedAttribute('font-family', val, [el])
+    } else if (isTextForeignObject(el)) {
+      // Handle foreignObject text elements
+      const textDiv = getTextDiv(el)
+      if (textDiv) {
+        textDiv.style.fontFamily = val
+      }
+    }
+  })
+  
+  if (!textElements.some(el => {
+    if (el.tagName === 'text') {
+      return el.textContent
+    } else if (isTextForeignObject(el)) {
+      const textDiv = getTextDiv(el)
+      return textDiv ? textDiv.textContent : false
+    }
+    return false
+  })) {
     svgCanvas.textActions.setCursor()
   }
 }
@@ -842,9 +966,32 @@ const getFontSizeMethod = () => {
 */
 const setFontSizeMethod = (val) => {
   const selectedElements = svgCanvas.getSelectedElements()
+  const textElements = filterTextElements(selectedElements)
+  
   svgCanvas.setCurText('font_size', val)
-  svgCanvas.changeSelectedAttribute('font-size', val)
-  if (!selectedElements[0]?.textContent) {
+  
+  textElements.forEach(el => {
+    if (el.tagName === 'text') {
+      // Handle regular text elements
+      svgCanvas.changeSelectedAttribute('font-size', val, [el])
+    } else if (isTextForeignObject(el)) {
+      // Handle foreignObject text elements
+      const textDiv = getTextDiv(el)
+      if (textDiv) {
+        textDiv.style.fontSize = val + 'px'
+      }
+    }
+  })
+  
+  if (!textElements.some(el => {
+    if (el.tagName === 'text') {
+      return el.textContent
+    } else if (isTextForeignObject(el)) {
+      const textDiv = getTextDiv(el)
+      return textDiv ? textDiv.textContent : false
+    }
+    return false
+  })) {
     svgCanvas.textActions.setCursor()
   }
 }

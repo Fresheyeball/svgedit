@@ -274,7 +274,7 @@ class TopPanel {
         }
 
         // Elements in this array cannot be converted to a path
-        if (['image', 'text', 'path', 'g', 'use'].includes(elname)) {
+        if (['image', 'text', 'path', 'g', 'use', 'foreignObject'].includes(elname)) {
           this.hideTool('tool_topath')
         } else {
           this.displayTool('tool_topath')
@@ -371,30 +371,56 @@ class TopPanel {
           $id(`${tagName}_${item}`).value = attrVal || 0
         })
 
-        if (tagName === 'text') {
+        if (tagName === 'text' || (tagName === 'foreignObject' && elem.getAttribute('se:type') === 'text')) {
           this.displayTool('text_panel')
-          $id('tool_italic').pressed = this.editor.svgCanvas.getItalic()
-          $id('tool_bold').pressed = this.editor.svgCanvas.getBold()
-          $id('tool_text_decoration_underline').pressed =
-            this.editor.svgCanvas.hasTextDecoration('underline')
-          $id('tool_text_decoration_linethrough').pressed =
-            this.editor.svgCanvas.hasTextDecoration('line-through')
-          $id('tool_text_decoration_overline').pressed =
-            this.editor.svgCanvas.hasTextDecoration('overline')
-          $id('tool_font_family').value = elem.getAttribute('font-family')
-          $id('tool_text_anchor').setAttribute(
-            'value',
-            elem.getAttribute('text-anchor')
-          )
-          $id('font_size').value = elem.getAttribute('font-size')
-          $id('tool_letter_spacing').value =
-            elem.getAttribute('letter-spacing') ?? 0
-          $id('tool_word_spacing').value =
-            elem.getAttribute('word-spacing') ?? 0
-          $id('tool_text_length').value = elem.getAttribute('textLength') ?? 0
-          $id('tool_length_adjust').value =
-            elem.getAttribute('lengthAdjust') ?? 0
-          $id('text').value = elem.textContent
+          
+          if (tagName === 'foreignObject') {
+            // Handle foreignObject text
+            const textDiv = elem.querySelector('div')
+            if (textDiv) {
+              const computedStyle = window.getComputedStyle(textDiv)
+              
+              // Update text panel controls based on div styles
+              $id('tool_italic').pressed = computedStyle.fontStyle === 'italic'
+              $id('tool_bold').pressed = computedStyle.fontWeight === 'bold' || parseInt(computedStyle.fontWeight) >= 700
+              $id('tool_text_decoration_underline').pressed = computedStyle.textDecoration.includes('underline')
+              $id('tool_text_decoration_linethrough').pressed = computedStyle.textDecoration.includes('line-through')
+              $id('tool_text_decoration_overline').pressed = computedStyle.textDecoration.includes('overline')
+              $id('tool_font_family').value = computedStyle.fontFamily.replace(/['"]/g, '')
+              $id('tool_text_anchor').setAttribute('value', 'middle') // Default for foreignObject
+              $id('font_size').value = parseInt(computedStyle.fontSize)
+              $id('tool_letter_spacing').value = 0 // Not supported yet
+              $id('tool_word_spacing').value = 0 // Not supported yet
+              $id('tool_text_length').value = 0 // Not applicable
+              $id('tool_length_adjust').value = 0 // Not applicable
+              $id('text').value = textDiv.textContent
+            }
+          } else {
+            // Original text element handling
+            $id('tool_italic').pressed = this.editor.svgCanvas.getItalic()
+            $id('tool_bold').pressed = this.editor.svgCanvas.getBold()
+            $id('tool_text_decoration_underline').pressed =
+              this.editor.svgCanvas.hasTextDecoration('underline')
+            $id('tool_text_decoration_linethrough').pressed =
+              this.editor.svgCanvas.hasTextDecoration('line-through')
+            $id('tool_text_decoration_overline').pressed =
+              this.editor.svgCanvas.hasTextDecoration('overline')
+            $id('tool_font_family').value = elem.getAttribute('font-family')
+            $id('tool_text_anchor').setAttribute(
+              'value',
+              elem.getAttribute('text-anchor')
+            )
+            $id('font_size').value = elem.getAttribute('font-size')
+            $id('tool_letter_spacing').value =
+              elem.getAttribute('letter-spacing') ?? 0
+            $id('tool_word_spacing').value =
+              elem.getAttribute('word-spacing') ?? 0
+            $id('tool_text_length').value = elem.getAttribute('textLength') ?? 0
+            $id('tool_length_adjust').value =
+              elem.getAttribute('lengthAdjust') ?? 0
+            $id('text').value = elem.textContent
+          }
+          
           if (this.editor.svgCanvas.addedNew) {
             // Timeout needed for IE9
             setTimeout(() => {
@@ -429,9 +455,9 @@ class TopPanel {
 
       // if (elem)
     } else if (this.multiselected) {
-      // Check if all selected elements are 'text' nodes, if yes enable text panel
+      // Check if all selected elements are 'text' nodes or text foreignObjects, if yes enable text panel
       const selElems = this.editor.svgCanvas.getSelectedElements()
-      if (selElems.every(elem => elem.tagName === 'text')) {
+      if (selElems.every(elem => elem.tagName === 'text' || (elem.tagName === 'foreignObject' && elem.getAttribute('se:type') === 'text'))) {
         this.displayTool('text_panel')
       }
 
