@@ -63,23 +63,51 @@ export const textActionsMethod = (function () {
   let lastY
   let allowDbl
   let currentTextDiv = null // For foreignObject text editing
-  
+
   // Event handlers for foreignObject text editing
   const handleTextInput = (evt) => {
     // Trigger change event for undo/redo
     svgCanvas.call('changed', [curtext])
   }
-  
+
   const handleTextBlur = (evt) => {
     // Exit text edit mode when div loses focus
     svgCanvas.textActions.toSelectMode(true)
   }
-  
+
   const handleTextKeydown = (evt) => {
     // Handle escape key to exit edit mode
     if (evt.key === 'Escape') {
       evt.preventDefault()
       svgCanvas.textActions.toSelectMode(true)
+      return
+    }
+    
+    // Handle enter key to create proper line breaks
+    if (evt.key === 'Enter') {
+      evt.preventDefault()
+      
+      // Insert a line break using document.execCommand or manual DOM manipulation
+      const selection = window.getSelection()
+      if (selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0)
+        range.deleteContents()
+        
+        // Create a new div element for the new line
+        const newDiv = document.createElement('div')
+        newDiv.innerHTML = '<br>' // Ensure the div has some content
+        
+        range.insertNode(newDiv)
+        
+        // Move cursor to the new div
+        range.setStartAfter(newDiv)
+        range.setEndAfter(newDiv)
+        selection.removeAllRanges()
+        selection.addRange(range)
+      }
+      
+      // Trigger change event for undo/redo
+      svgCanvas.call('changed', [curtext])
     }
   }
 
@@ -445,7 +473,7 @@ export const textActionsMethod = (function () {
       allowDbl = false
       svgCanvas.setCurrentMode('textedit')
       svgCanvas.selectorManager.requestSelector(curtext).showGrips(false)
-      
+
       // Check if this is a foreignObject text element
       if (isTextForeignObject(curtext)) {
         currentTextDiv = getTextDiv(curtext)
@@ -458,7 +486,7 @@ export const textActionsMethod = (function () {
           const selection = window.getSelection()
           selection.removeAllRanges()
           selection.addRange(range)
-          
+
           // Add event listeners for content changes
           currentTextDiv.addEventListener('input', handleTextInput)
           currentTextDiv.addEventListener('blur', handleTextBlur)
@@ -466,7 +494,7 @@ export const textActionsMethod = (function () {
         }
         return
       }
-      
+
       // Original text element handling
       svgCanvas.textActions.init()
       curtext.style.cursor = 'text'
@@ -489,21 +517,21 @@ export const textActionsMethod = (function () {
      */
     toSelectMode (selectElem) {
       svgCanvas.setCurrentMode('select')
-      
+
       // Handle foreignObject text cleanup
       if (currentTextDiv) {
         currentTextDiv.removeEventListener('input', handleTextInput)
         currentTextDiv.removeEventListener('blur', handleTextBlur)
         currentTextDiv.removeEventListener('keydown', handleTextKeydown)
         currentTextDiv.blur()
-        
+
         // Check if empty and delete if so
         if (!currentTextDiv.textContent.trim()) {
           svgCanvas.deleteSelectedElements()
         }
         currentTextDiv = null
       }
-      
+
       // Original text element cleanup
       clearInterval(blinker)
       blinker = null
@@ -525,7 +553,7 @@ export const textActionsMethod = (function () {
           svgCanvas.addToSelection([curtext], true)
         }
       }
-      
+
       // For regular text elements
       if (curtext && !isTextForeignObject(curtext) && !curtext.textContent.length) {
         svgCanvas.deleteSelectedElements()
@@ -557,7 +585,7 @@ export const textActionsMethod = (function () {
       if (!curtext) {
         return
       }
-      
+
       // Handle foreignObject text elements
       if (isTextForeignObject(curtext)) {
         currentTextDiv = getTextDiv(curtext)
@@ -567,7 +595,7 @@ export const textActionsMethod = (function () {
         }
         return
       }
-      
+
       // Original text element handling
       let i
       let end

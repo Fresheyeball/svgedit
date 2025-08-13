@@ -660,7 +660,7 @@ const getBoldMethod = () => {
 const setBoldMethod = (b) => {
   const selectedElements = svgCanvas.getSelectedElements()
   const textElements = filterTextElements(selectedElements)
-  
+
   textElements.forEach(el => {
     if (el.tagName === 'text') {
       // Handle regular text elements
@@ -673,7 +673,7 @@ const setBoldMethod = (b) => {
       }
     }
   })
-  
+
   if (!textElements.some(el => {
     if (el.tagName === 'text') {
       return el.textContent
@@ -792,7 +792,7 @@ const getItalicMethod = () => {
 const setItalicMethod = (i) => {
   const selectedElements = svgCanvas.getSelectedElements()
   const textElements = filterTextElements(selectedElements)
-  
+
   textElements.forEach(el => {
     if (el.tagName === 'text') {
       // Handle regular text elements
@@ -805,7 +805,7 @@ const setItalicMethod = (i) => {
       }
     }
   })
-  
+
   if (!textElements.some(el => {
     if (el.tagName === 'text') {
       return el.textContent
@@ -904,7 +904,7 @@ const setFontFamilyMethod = (val) => {
   const selectedElements = svgCanvas.getSelectedElements()
   const textElements = filterTextElements(selectedElements)
   svgCanvas.setCurText('font_family', val)
-  
+
   textElements.forEach(el => {
     if (el.tagName === 'text') {
       // Handle regular text elements
@@ -917,7 +917,7 @@ const setFontFamilyMethod = (val) => {
       }
     }
   })
-  
+
   if (!textElements.some(el => {
     if (el.tagName === 'text') {
       return el.textContent
@@ -967,9 +967,9 @@ const getFontSizeMethod = () => {
 const setFontSizeMethod = (val) => {
   const selectedElements = svgCanvas.getSelectedElements()
   const textElements = filterTextElements(selectedElements)
-  
+
   svgCanvas.setCurText('font_size', val)
-  
+
   textElements.forEach(el => {
     if (el.tagName === 'text') {
       // Handle regular text elements
@@ -982,7 +982,7 @@ const setFontSizeMethod = (val) => {
       }
     }
   })
-  
+
   if (!textElements.some(el => {
     if (el.tagName === 'text') {
       return el.textContent

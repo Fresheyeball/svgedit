@@ -175,7 +175,7 @@ export const changeSelectedAttributeNoUndoMethod = (attr, newValue, elems) => {
 
     // Check if this is a foreignObject text element
     const isForeignObjectText = elem.tagName === 'foreignObject' && elem.getAttribute('se:type') === 'text'
-    
+
     let oldval
     if (attr === '#text') {
       if (isForeignObjectText) {
@@ -187,7 +187,7 @@ export const changeSelectedAttributeNoUndoMethod = (attr, newValue, elems) => {
     } else {
       oldval = elem.getAttribute(attr)
     }
-    
+
     if (!oldval) { oldval = '' }
     if (oldval !== String(newValue)) {
       if (attr === '#text') {

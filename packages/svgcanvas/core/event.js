@@ -1260,19 +1260,19 @@ const mouseDownEvent = (evt) => {
         }
       })
       break
-    case 'text':
+    case 'text': {
       svgCanvas.setStarted(true)
       // Create foreignObject with div instead of text element
       const fontSize = parseInt(svgCanvas.getCurText('font_size'))
       const fontFamily = svgCanvas.getCurText('font_family')
       const fill = svgCanvas.getCurText('fill')
-      const strokeWidth = svgCanvas.getCurText('stroke_width')
+      // const strokeWidth = svgCanvas.getCurText('stroke_width')
       const opacity = curShape.opacity
-      
+
       // Initial size for the foreignObject
       const initialWidth = 200
       const initialHeight = fontSize * 2
-      
+
       const newFO = svgCanvas.addSVGElementsFromJson({
         element: 'foreignObject',
         curStyles: false,
@@ -1286,7 +1286,7 @@ const mouseDownEvent = (evt) => {
           'se:type': 'text' // Custom attribute to identify as text
         }
       })
-      
+
       // Create the HTML div inside foreignObject
       const div = document.createElementNS('http://www.w3.org/1999/xhtml', 'div')
       div.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml')
@@ -1296,19 +1296,21 @@ const mouseDownEvent = (evt) => {
       div.style.fontSize = fontSize + 'px'
       div.style.color = fill
       div.style.textAlign = 'center'
-      div.style.display = 'flex'
-      div.style.alignItems = 'center'
-      div.style.justifyContent = 'center'
-      div.style.wordWrap = 'break-word'
+      div.style.display = 'block'
+      div.style.whiteSpace = 'pre-wrap'
+      // div.style.wordWrap = 'break-word'
       div.style.overflowWrap = 'break-word'
       div.style.padding = '4px'
       div.style.boxSizing = 'border-box'
       div.style.cursor = 'text'
+      div.style.minHeight = '100%'
+      div.style.outline = 'none'
       div.setAttribute('contenteditable', 'true')
       div.textContent = 'Text'
-      
+
       newFO.appendChild(div)
       break
+    }
     case 'path':
     // Fall through
     case 'pathedit':
