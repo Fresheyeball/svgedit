@@ -373,13 +373,13 @@ class TopPanel {
 
         if (tagName === 'text' || (tagName === 'foreignObject' && elem.getAttribute('se:type') === 'text')) {
           this.displayTool('text_panel')
-          
+
           if (tagName === 'foreignObject') {
             // Handle foreignObject text
             const textDiv = elem.querySelector('div')
             if (textDiv) {
               const computedStyle = window.getComputedStyle(textDiv)
-              
+
               // Update text panel controls based on div styles
               $id('tool_italic').pressed = computedStyle.fontStyle === 'italic'
               $id('tool_bold').pressed = computedStyle.fontWeight === 'bold' || parseInt(computedStyle.fontWeight) >= 700
@@ -420,7 +420,7 @@ class TopPanel {
               elem.getAttribute('lengthAdjust') ?? 0
             $id('text').value = elem.textContent
           }
-          
+
           if (this.editor.svgCanvas.addedNew) {
             // Timeout needed for IE9
             setTimeout(() => {

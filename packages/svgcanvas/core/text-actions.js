@@ -66,6 +66,28 @@ export const textActionsMethod = (function () {
 
   // Event handlers for foreignObject text editing
   const handleTextInput = (evt) => {
+    // Auto-resize the foreignObject to fit content
+    setTimeout(() => {
+      if (currentTextDiv && curtext) {
+        const computedStyle = window.getComputedStyle(currentTextDiv)
+        const padding = parseFloat(computedStyle.paddingTop) + parseFloat(computedStyle.paddingBottom)
+        const lineHeight = parseFloat(computedStyle.lineHeight) || parseFloat(computedStyle.fontSize) * 1.2
+
+        // Calculate required height based on content
+        const textHeight = currentTextDiv.scrollHeight
+        const minHeight = lineHeight + padding
+        const newHeight = Math.max(textHeight, minHeight)
+
+        // Update foreignObject dimensions
+        curtext.setAttribute('height', newHeight)
+
+        // Trigger selector update
+        if (svgCanvas.selectorManager) {
+          svgCanvas.selectorManager.requestSelector(curtext).resize()
+        }
+      }
+    }, 0)
+
     // Trigger change event for undo/redo
     svgCanvas.call('changed', [curtext])
   }
@@ -82,30 +104,52 @@ export const textActionsMethod = (function () {
       svgCanvas.textActions.toSelectMode(true)
       return
     }
-    
+
     // Handle enter key to create proper line breaks
     if (evt.key === 'Enter') {
       evt.preventDefault()
-      
+
       // Insert a line break using document.execCommand or manual DOM manipulation
       const selection = window.getSelection()
       if (selection.rangeCount > 0) {
         const range = selection.getRangeAt(0)
         range.deleteContents()
-        
+
         // Create a new div element for the new line
         const newDiv = document.createElement('div')
         newDiv.innerHTML = '<br>' // Ensure the div has some content
-        
+
         range.insertNode(newDiv)
-        
+
         // Move cursor to the new div
         range.setStartAfter(newDiv)
         range.setEndAfter(newDiv)
         selection.removeAllRanges()
         selection.addRange(range)
       }
-      
+
+      // Auto-resize the foreignObject to fit new content
+      setTimeout(() => {
+        if (currentTextDiv && curtext) {
+          const computedStyle = window.getComputedStyle(currentTextDiv)
+          const padding = parseFloat(computedStyle.paddingTop) + parseFloat(computedStyle.paddingBottom)
+          const lineHeight = parseFloat(computedStyle.lineHeight) || parseFloat(computedStyle.fontSize) * 1.2
+
+          // Calculate required height based on content
+          const textHeight = currentTextDiv.scrollHeight
+          const minHeight = lineHeight + padding
+          const newHeight = Math.max(textHeight, minHeight)
+
+          // Update foreignObject dimensions
+          curtext.setAttribute('height', newHeight)
+
+          // Trigger selector update
+          if (svgCanvas.selectorManager) {
+            svgCanvas.selectorManager.requestSelector(curtext).resize()
+          }
+        }
+      }, 0)
+
       // Trigger change event for undo/redo
       svgCanvas.call('changed', [curtext])
     }
@@ -491,6 +535,26 @@ export const textActionsMethod = (function () {
           currentTextDiv.addEventListener('input', handleTextInput)
           currentTextDiv.addEventListener('blur', handleTextBlur)
           currentTextDiv.addEventListener('keydown', handleTextKeydown)
+
+          // Ensure the foreignObject is properly sized for the current content
+          setTimeout(() => {
+            const computedStyle = window.getComputedStyle(currentTextDiv)
+            const padding = parseFloat(computedStyle.paddingTop) + parseFloat(computedStyle.paddingBottom)
+            const lineHeight = parseFloat(computedStyle.lineHeight) || parseFloat(computedStyle.fontSize) * 1.2
+
+            // Calculate required height based on content
+            const textHeight = currentTextDiv.scrollHeight
+            const minHeight = lineHeight + padding
+            const newHeight = Math.max(textHeight, minHeight)
+
+            // Update foreignObject dimensions
+            curtext.setAttribute('height', newHeight)
+
+            // Trigger selector update
+            if (svgCanvas.selectorManager) {
+              svgCanvas.selectorManager.requestSelector(curtext).resize()
+            }
+          }, 0)
         }
         return
       }

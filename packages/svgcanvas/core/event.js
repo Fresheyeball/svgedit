@@ -1282,7 +1282,7 @@ const mouseDownEvent = (evt) => {
           width: initialWidth,
           height: initialHeight,
           id: svgCanvas.getNextId(),
-          opacity: opacity,
+          opacity,
           'se:type': 'text' // Custom attribute to identify as text
         }
       })
