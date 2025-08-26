@@ -81,7 +81,7 @@ export const textActionsMethod = (function () {
         // Update foreignObject dimensions
         curtext.setAttribute('height', newHeight)
 
-        // Trigger selector update
+        // Trigger selector update to reflect new dimensions
         if (svgCanvas.selectorManager) {
           svgCanvas.selectorManager.requestSelector(curtext).resize()
         }

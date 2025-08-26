@@ -387,7 +387,16 @@ class TopPanel {
               $id('tool_text_decoration_linethrough').pressed = computedStyle.textDecoration.includes('line-through')
               $id('tool_text_decoration_overline').pressed = computedStyle.textDecoration.includes('overline')
               $id('tool_font_family').value = computedStyle.fontFamily.replace(/['"]/g, '')
-              $id('tool_text_anchor').setAttribute('value', 'middle') // Default for foreignObject
+              // Map CSS text-align values to SVG text-anchor values
+              const textAlignToAnchorMap = {
+                left: 'start',
+                center: 'middle',
+                right: 'end',
+                justify: 'justify'
+              }
+              const textAlign = computedStyle.textAlign || 'center'
+              const textAnchor = elem.getAttribute('text-anchor') || textAlignToAnchorMap[textAlign] || 'middle'
+              $id('tool_text_anchor').setAttribute('value', textAnchor)
               $id('font_size').value = parseInt(computedStyle.fontSize)
               $id('tool_letter_spacing').value = 0 // Not supported yet
               $id('tool_word_spacing').value = 0 // Not supported yet

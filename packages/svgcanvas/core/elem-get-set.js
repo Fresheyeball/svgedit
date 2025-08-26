@@ -828,6 +828,33 @@ const setTextAnchorMethod = (value) => {
   const selectedElements = svgCanvas.getSelectedElements()
   const textElements = selectedElements.filter(el => el?.tagName === 'text')
   svgCanvas.changeSelectedAttribute('text-anchor', value, textElements)
+
+  // Handle foreignObject text elements
+  const foreignObjectTextElements = selectedElements.filter(el =>
+    el?.tagName === 'foreignObject' && el?.getAttribute('se:type') === 'text'
+  )
+
+  foreignObjectTextElements.forEach(el => {
+    const textDiv = el.querySelector('div')
+    if (textDiv) {
+      // Map SVG text-anchor values to CSS text-align values
+      const textAlignMap = {
+        start: 'left',
+        middle: 'center',
+        end: 'right',
+        justify: 'justify'
+      }
+
+      const textAlign = textAlignMap[value] || 'left'
+      textDiv.style.textAlign = textAlign
+
+      // Store the anchor value as an attribute for consistency
+      el.setAttribute('text-anchor', value)
+
+      // Trigger change event
+      svgCanvas.call('changed', [el])
+    }
+  })
 }
 
 /**

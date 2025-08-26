@@ -271,39 +271,120 @@ const mouseMoveEvent = (evt) => {
         tx = width
       }
 
-      // update the transform list with translate,scale,translate
-      const translateOrigin = svgRoot.createSVGTransform()
-      const scale = svgRoot.createSVGTransform()
-      const translateBack = svgRoot.createSVGTransform()
+      // Special handling for text elements (foreignObject with contenteditable div)
+      if (selected.tagName === 'foreignObject' && selected.getAttribute('se:type') === 'text') {
+        // For text elements, update dimensions directly instead of using transforms
+        // This enables live text rewrapping during resize
 
-      if (svgCanvas.getCurConfig().gridSnapping) {
-        left = snapToGrid(left)
-        tx = snapToGrid(tx)
-        top = snapToGrid(top)
-        ty = snapToGrid(ty)
-      }
+        // Use the initial bbox (from when resize started) as the base for calculations
+        const initBbox = svgCanvas.getInitBbox()
+        const baseWidth = initBbox.width
+        const baseHeight = initBbox.height
+        const baseX = initBbox.x
+        const baseY = initBbox.y
+        let newWidth = baseWidth + dx
+        let newHeight = baseHeight + dy
+        let newX = baseX
+        let newY = baseY
 
-      translateOrigin.setTranslate(-(left + tx), -(top + ty))
-      // For images, we maintain aspect ratio by default and relax when shift pressed
-      const maintainAspectRatio = (selected.tagName !== 'image' && evt.shiftKey) || (selected.tagName === 'image' && !evt.shiftKey)
-      if (maintainAspectRatio) {
-        if (sx === 1) {
-          sx = sy
-        } else { sy = sx }
-      }
-      scale.setScale(sx, sy)
+        // Adjust position for resize from different sides
+        if (svgCanvas.getCurrentResizeMode().includes('w')) {
+          newX = baseX + dx
+          newWidth = baseWidth - dx
+        }
+        if (svgCanvas.getCurrentResizeMode().includes('n')) {
+          newY = baseY + dy
+          newHeight = baseHeight - dy
+        }
 
-      translateBack.setTranslate(left + tx, top + ty)
-      if (hasMatrix) {
-        const diff = angle ? 1 : 0
-        tlist.replaceItem(translateOrigin, 2 + diff)
-        tlist.replaceItem(scale, 1 + diff)
-        tlist.replaceItem(translateBack, Number(diff))
+        // Handle aspect ratio maintenance (Shift key)
+        const maintainAspectRatio = evt.shiftKey
+        if (maintainAspectRatio) {
+          const scaleX = newWidth / baseWidth
+          const scaleY = newHeight / baseHeight
+
+          // Use the larger scale factor to maintain aspect ratio
+          const scale = Math.max(Math.abs(scaleX), Math.abs(scaleY))
+          newWidth = baseWidth * scale
+          newHeight = baseHeight * scale
+
+          // Adjust position if resizing from corners
+          if (svgCanvas.getCurrentResizeMode().includes('w')) {
+            newX = baseX + baseWidth - newWidth
+          }
+          if (svgCanvas.getCurrentResizeMode().includes('n')) {
+            newY = baseY + baseHeight - newHeight
+          }
+        }
+
+        // Ensure minimum dimensions
+        newWidth = Math.max(newWidth, 20)
+        newHeight = Math.max(newHeight, 20)
+
+        if (svgCanvas.getCurConfig().gridSnapping) {
+          newWidth = snapToGrid(newWidth)
+          newHeight = snapToGrid(newHeight)
+          newX = snapToGrid(newX)
+          newY = snapToGrid(newY)
+        }
+
+        // Apply the new dimensions immediately
+        assignAttributes(selected, {
+          x: newX,
+          y: newY,
+          width: newWidth,
+          height: newHeight
+        })
+
+        // Find the inner div and update its dimensions to trigger rewrap
+        const textDiv = selected.querySelector('div')
+        if (textDiv) {
+          // The div should automatically reflow with the new foreignObject dimensions
+          // We might need to trigger a reflow by accessing offsetHeight
+          textDiv.style.width = '100%'
+          textDiv.style.height = 'auto'
+          textDiv.style.minHeight = '100%'
+
+          // Force a reflow to ensure the text wraps properly
+          // eslint-disable-next-line no-unused-expressions
+          textDiv.offsetHeight
+        }
       } else {
-        const N = tlist.numberOfItems
-        tlist.replaceItem(translateBack, N - 3)
-        tlist.replaceItem(scale, N - 2)
-        tlist.replaceItem(translateOrigin, N - 1)
+        // Standard behavior for non-text elements: use transforms
+        // update the transform list with translate,scale,translate
+        const translateOrigin = svgRoot.createSVGTransform()
+        const scale = svgRoot.createSVGTransform()
+        const translateBack = svgRoot.createSVGTransform()
+
+        if (svgCanvas.getCurConfig().gridSnapping) {
+          left = snapToGrid(left)
+          tx = snapToGrid(tx)
+          top = snapToGrid(top)
+          ty = snapToGrid(ty)
+        }
+
+        translateOrigin.setTranslate(-(left + tx), -(top + ty))
+        // For images, we maintain aspect ratio by default and relax when shift pressed
+        const maintainAspectRatio = (selected.tagName !== 'image' && evt.shiftKey) || (selected.tagName === 'image' && !evt.shiftKey)
+        if (maintainAspectRatio) {
+          if (sx === 1) {
+            sx = sy
+          } else { sy = sx }
+        }
+        scale.setScale(sx, sy)
+
+        translateBack.setTranslate(left + tx, top + ty)
+        if (hasMatrix) {
+          const diff = angle ? 1 : 0
+          tlist.replaceItem(translateOrigin, 2 + diff)
+          tlist.replaceItem(scale, 1 + diff)
+          tlist.replaceItem(translateBack, Number(diff))
+        } else {
+          const N = tlist.numberOfItems
+          tlist.replaceItem(translateBack, N - 3)
+          tlist.replaceItem(scale, N - 2)
+          tlist.replaceItem(translateOrigin, N - 1)
+        }
       }
 
       svgCanvas.selectorManager.requestSelector(selected).resize()
@@ -1283,7 +1364,8 @@ const mouseDownEvent = (evt) => {
           height: initialHeight,
           id: svgCanvas.getNextId(),
           opacity,
-          'se:type': 'text' // Custom attribute to identify as text
+          'se:type': 'text', // Custom attribute to identify as text
+          'text-anchor': 'middle' // Default to center alignment
         }
       })
 

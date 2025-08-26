@@ -81,6 +81,7 @@ export default {
     text_anchor_start: 'Align the text in start',
     text_anchor_middle: 'Align the text in middle',
     text_anchor_end: 'Align the text in end',
+    text_anchor_justify: 'Justify the text',
     text_letter_spacing: 'Change the letter spacing',
     text_word_spacing: 'Change the word spacing',
     text_length: 'Lets you specify the width of the space into which the text will draw',
