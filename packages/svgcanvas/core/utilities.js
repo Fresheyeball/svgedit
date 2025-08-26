@@ -1181,7 +1181,9 @@ export const assignAttributes = (elem, attrs, suspendLength, unitCheck) => {
         ? NS.XML
         : key.substr(0, 6) === 'xlink:'
           ? NS.XLINK
-          : null
+          : key.substr(0, 3) === 'se:'
+            ? NS.SE
+            : null
     if (value === undefined) {
       if (ns) {
         elem.removeAttributeNS(ns, key)
