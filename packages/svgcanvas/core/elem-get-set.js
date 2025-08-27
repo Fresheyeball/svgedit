@@ -830,7 +830,9 @@ const setTextAnchorMethod = (value) => {
 
   // Handle regular text elements
   const regularTextElements = textElements.filter(el => el.tagName === 'text')
-  svgCanvas.changeSelectedAttribute('text-anchor', value, regularTextElements)
+  // SVG text elements don't support justify, so fallback to start
+  const svgTextAnchorValue = value === 'justify' ? 'start' : value
+  svgCanvas.changeSelectedAttribute('text-anchor', svgTextAnchorValue, regularTextElements)
 
   // Handle foreignObject text elements
   const foreignObjectTextElements = textElements.filter(el => isTextForeignObject(el))

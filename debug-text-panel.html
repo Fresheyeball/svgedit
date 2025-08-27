@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Text Panel</title>
+</head>
+<body>
+    <h1>Debug Text Panel Issue</h1>
+    <p>Open browser console and check for:</p>
+    <ol>
+        <li>Create a text element</li>
+        <li>Select it</li>  
+        <li>Check if text_panel class is being displayed</li>
+        <li>Check if displayTool('text_panel') is being called</li>
+    </ol>
+    
+    <script>
+        // Debug script to check if text panel logic works
+        console.log('Debug script loaded');
+        
+        // Wait for page load then check
+        setTimeout(() => {
+            const textPanel = document.querySelector('.text_panel');
+            if (textPanel) {
+                console.log('✅ Found text_panel element:', textPanel);
+                console.log('Current display style:', textPanel.style.display);
+                console.log('Computed display style:', window.getComputedStyle(textPanel).display);
+            } else {
+                console.log('❌ text_panel element not found');
+            }
+            
+            // Check if displayTool function exists
+            if (window.editor && window.editor.topPanel && window.editor.topPanel.displayTool) {
+                console.log('✅ displayTool function exists');
+            } else {
+                console.log('❌ displayTool function not found');
+            }
+        }, 2000);
+    </script>
+</body>
+</html>

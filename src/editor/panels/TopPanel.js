@@ -361,7 +361,13 @@ class TopPanel {
 
       if (panels[tagName]) {
         const curPanel = panels[tagName]
-        this.displayTool(tagName + '_panel')
+        
+        // Handle foreignObject text elements specially - don't show foreignObject_panel, only text_panel
+        if (tagName === 'foreignObject' && elem.getAttribute('se:type') === 'text') {
+          // Skip showing foreignObject_panel for text foreignObjects
+        } else {
+          this.displayTool(tagName + '_panel')
+        }
 
         curPanel.forEach(item => {
           let attrVal = elem.getAttribute(item)

@@ -142,6 +142,17 @@
   <div class="text_panel">
     <!-- Text styles -->
     <se-button id="tool_bold" title="properties.bold" src="bold.svg" shortcut="B"></se-button>
+    <!-- Text Anchor (moved right after Bold button) -->
+    <se-list id="tool_text_anchor" label="" width="22px" height="22px">
+      <se-list-item id="tool_text_anchor_start" value="start" title="properties.text_anchor_start"
+        src="anchor_start.svg" img-height="25px"></se-list-item>
+      <se-list-item id="tool_text_anchor_middle" value="middle" title="properties.text_anchor_middle"
+        src="anchor_middle.svg" img-height="25px"></se-list-item>
+      <se-list-item id="tool_text_anchor_end" value="end" title="properties.text_anchor_end" src="anchor_end.svg"
+        img-height="25px"></se-list-item>
+      <se-list-item id="tool_text_anchor_justify" value="justify" title="properties.text_anchor_justify"
+        src="anchor_justify.svg" img-height="25px"></se-list-item>
+    </se-list>
     <se-button id="tool_italic" title="properties.italic" src="italic.svg" shortcut="I"></se-button>
     <se-button id="tool_text_decoration_underline" title="properties.text_decoration_underline"
       src="text_decoration_underline.svg"></se-button>
@@ -157,17 +168,6 @@
     <se-spin-input size="2" id="font_size" min=1 max=1000 step=1 title="properties.font_size"
       src="fontsize.svg"></se-spin-input>
 
-    <!-- Text Anchor -->
-    <se-list id="tool_text_anchor" label="" width="22px" height="22px">
-      <se-list-item id="tool_text_anchor_start" value="start" title="properties.text_anchor_start"
-        src="anchor_start.svg" img-height="25px"></se-list-item>
-      <se-list-item id="tool_text_anchor_middle" value="middle" title="properties.text_anchor_middle"
-        src="anchor_middle.svg" img-height="25px"></se-list-item>
-      <se-list-item id="tool_text_anchor_end" value="end" title="properties.text_anchor_end" src="anchor_end.svg"
-        img-height="25px"></se-list-item>
-      <se-list-item id="tool_text_anchor_justify" value="justify" title="properties.text_anchor_justify"
-        src="anchor_justify.svg" img-height="25px"></se-list-item>
-    </se-list>
 
     <!-- Letter Spacing -->
     <se-spin-input size="2" id="tool_letter_spacing" min=0 max=100 step=1 title="properties.text_letter_spacing"
