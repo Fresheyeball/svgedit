@@ -826,13 +826,14 @@ const setItalicMethod = (i) => {
  */
 const setTextAnchorMethod = (value) => {
   const selectedElements = svgCanvas.getSelectedElements()
-  const textElements = selectedElements.filter(el => el?.tagName === 'text')
-  svgCanvas.changeSelectedAttribute('text-anchor', value, textElements)
+  const textElements = filterTextElements(selectedElements)
+
+  // Handle regular text elements
+  const regularTextElements = textElements.filter(el => el.tagName === 'text')
+  svgCanvas.changeSelectedAttribute('text-anchor', value, regularTextElements)
 
   // Handle foreignObject text elements
-  const foreignObjectTextElements = selectedElements.filter(el =>
-    el?.tagName === 'foreignObject' && el?.getAttribute('se:type') === 'text'
-  )
+  const foreignObjectTextElements = textElements.filter(el => isTextForeignObject(el))
 
   foreignObjectTextElements.forEach(el => {
     const textDiv = el.querySelector('div')
@@ -864,7 +865,7 @@ const setTextAnchorMethod = (value) => {
  */
 const setLetterSpacingMethod = (value) => {
   const selectedElements = svgCanvas.getSelectedElements()
-  const textElements = selectedElements.filter(el => el?.tagName === 'text')
+  const textElements = filterTextElements(selectedElements).filter(el => el.tagName === 'text')
   svgCanvas.changeSelectedAttribute('letter-spacing', value, textElements)
   if (!textElements.some(el => el.textContent)) {
     svgCanvas.textActions.setCursor()
@@ -878,7 +879,7 @@ const setLetterSpacingMethod = (value) => {
  */
 const setWordSpacingMethod = (value) => {
   const selectedElements = svgCanvas.getSelectedElements()
-  const textElements = selectedElements.filter(el => el?.tagName === 'text')
+  const textElements = filterTextElements(selectedElements).filter(el => el.tagName === 'text')
   svgCanvas.changeSelectedAttribute('word-spacing', value, textElements)
   if (!textElements.some(el => el.textContent)) {
     svgCanvas.textActions.setCursor()
@@ -892,7 +893,7 @@ const setWordSpacingMethod = (value) => {
  */
 const setTextLengthMethod = (value) => {
   const selectedElements = svgCanvas.getSelectedElements()
-  const textElements = selectedElements.filter(el => el?.tagName === 'text')
+  const textElements = filterTextElements(selectedElements).filter(el => el.tagName === 'text')
   svgCanvas.changeSelectedAttribute('textLength', value, textElements)
   if (!textElements.some(el => el.textContent)) {
     svgCanvas.textActions.setCursor()
@@ -906,7 +907,7 @@ const setTextLengthMethod = (value) => {
  */
 const setLengthAdjustMethod = (value) => {
   const selectedElements = svgCanvas.getSelectedElements()
-  const textElements = selectedElements.filter(el => el?.tagName === 'text')
+  const textElements = filterTextElements(selectedElements).filter(el => el.tagName === 'text')
   svgCanvas.changeSelectedAttribute('lengthAdjust', value, textElements)
   if (!textElements.some(el => el.textContent)) {
     svgCanvas.textActions.setCursor()

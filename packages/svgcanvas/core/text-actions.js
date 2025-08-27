@@ -161,6 +161,17 @@ export const textActionsMethod = (function () {
    * @returns {void}
    */
   function setCursor (index) {
+    // Handle foreignObject text elements
+    if (isTextForeignObject(curtext)) {
+      // For foreignObject text, the HTML div handles cursor display natively
+      // We don't need to show an SVG cursor, just ensure the div is focused
+      if (currentTextDiv) {
+        currentTextDiv.focus()
+      }
+      return
+    }
+
+    // Original SVG text element handling
     const empty = textinput.value === ''
     textinput.focus()
 
@@ -222,6 +233,17 @@ export const textActionsMethod = (function () {
    * @returns {void}
    */
   function setSelection (start, end, skipInput) {
+    // Handle foreignObject text elements
+    if (isTextForeignObject(curtext)) {
+      // For foreignObject text, selection is handled by the browser natively
+      // We only need to ensure cursor is positioned if start equals end
+      if (start === end) {
+        setCursor(end)
+      }
+      return
+    }
+
+    // Original SVG text element handling
     if (start === end) {
       setCursor(end)
       return
@@ -288,6 +310,15 @@ export const textActionsMethod = (function () {
    * @returns {Integer}
    */
   function getIndexFromPoint (mouseX, mouseY) {
+    // Handle foreignObject text elements
+    if (isTextForeignObject(curtext)) {
+      // For foreignObject text, we don't need traditional cursor positioning
+      // since the HTML div handles this natively
+      // Return 0 as a placeholder since cursor positioning is handled by the browser
+      return 0
+    }
+
+    // Original SVG text element handling
     // Position cursor here
     const pt = svgCanvas.getSvgRoot().createSVGPoint()
     pt.x = mouseX
@@ -457,12 +488,23 @@ export const textActionsMethod = (function () {
      * @returns {void}
      */
     mouseDown (evt, mouseTarget, startX, startY) {
+      lastX = startX
+      lastY = startY
+
+      // Handle foreignObject text elements
+      if (isTextForeignObject(curtext)) {
+        // For foreignObject text, ensure the HTML div gets focus
+        if (currentTextDiv) {
+          currentTextDiv.focus()
+        }
+        return
+      }
+
+      // Original SVG text element handling
       const pt = screenToPt(startX, startY)
 
       textinput.focus()
       setCursorFromPoint(pt.x, pt.y)
-      lastX = startX
-      lastY = startY
 
       // TODO: Find way to block native selection
     },
@@ -472,6 +514,14 @@ export const textActionsMethod = (function () {
      * @returns {void}
      */
     mouseMove (mouseX, mouseY) {
+      // Handle foreignObject text elements
+      if (isTextForeignObject(curtext)) {
+        // For foreignObject text, mouse interactions are handled natively by the HTML div
+        // No need to do anything special here
+        return
+      }
+
+      // Original SVG text element handling
       const pt = screenToPt(mouseX, mouseY)
       setEndSelectionFromPoint(pt.x, pt.y)
     },
@@ -482,6 +532,22 @@ export const textActionsMethod = (function () {
      * @returns {void}
      */
     mouseUp (evt, mouseX, mouseY) {
+      // Handle foreignObject text elements
+      if (isTextForeignObject(curtext)) {
+        // For foreignObject text, mouse interactions are handled natively by the HTML div
+        // We only need to check if we should exit text edit mode
+        if (evt.target !== curtext && evt.target !== currentTextDiv &&
+            !curtext.contains(evt.target) &&
+            mouseX < lastX + 2 &&
+            mouseX > lastX - 2 &&
+            mouseY < lastY + 2 &&
+            mouseY > lastY - 2) {
+          svgCanvas.textActions.toSelectMode(true)
+        }
+        return
+      }
+
+      // Original SVG text element handling
       const pt = screenToPt(mouseX, mouseY)
 
       setEndSelectionFromPoint(pt.x, pt.y, true)

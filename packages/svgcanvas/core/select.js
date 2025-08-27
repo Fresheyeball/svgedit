@@ -119,7 +119,7 @@ export class Selector {
     }
 
     const { tagName } = selected
-    if (tagName === 'text') {
+    if (tagName === 'text' || (tagName === 'foreignObject' && selected.getAttribute('se:type') === 'text')) {
       offset += 2 / zoom
     }
 

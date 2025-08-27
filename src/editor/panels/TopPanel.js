@@ -324,6 +324,7 @@ class TopPanel {
         ellipse: ['cx', 'cy', 'rx', 'ry'],
         line: ['x1', 'y1', 'x2', 'y2'],
         text: [],
+        foreignObject: [],
         use: []
       }
 
@@ -805,7 +806,10 @@ class TopPanel {
    */
   get anyTextSelected () {
     const selected = this.editor.svgCanvas.getSelectedElements()
-    return selected.filter(el => el.tagName === 'text').length > 0
+    return selected.filter(el => 
+      el.tagName === 'text' || 
+      (el.tagName === 'foreignObject' && el.getAttribute('se:type') === 'text')
+    ).length > 0
   }
 
   /**
