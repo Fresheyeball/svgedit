@@ -588,6 +588,11 @@ export const textActionsMethod = (function () {
       if (isTextForeignObject(curtext)) {
         currentTextDiv = getTextDiv(curtext)
         if (currentTextDiv) {
+          // Ensure the div is properly set up for editing
+          currentTextDiv.setAttribute('contenteditable', 'true')
+          currentTextDiv.style.outline = 'none'
+          currentTextDiv.style.cursor = 'text'
+
           // Enable editing on the div
           currentTextDiv.focus()
           // Select all text on first click
@@ -596,6 +601,11 @@ export const textActionsMethod = (function () {
           const selection = window.getSelection()
           selection.removeAllRanges()
           selection.addRange(range)
+
+          // Remove any existing event listeners to prevent duplicates
+          currentTextDiv.removeEventListener('input', handleTextInput)
+          currentTextDiv.removeEventListener('blur', handleTextBlur)
+          currentTextDiv.removeEventListener('keydown', handleTextKeydown)
 
           // Add event listeners for content changes
           currentTextDiv.addEventListener('input', handleTextInput)
