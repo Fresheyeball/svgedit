@@ -180,7 +180,7 @@ export const remapElement = (selected, changes, m) => {
 
       // Scale font-size
       let fontSize = selected.getAttribute('font-size')
-      if (!fontSize) {
+      if (!fontSize && selected && selected.nodeType === 1) {
         // If not directly set, try computed style
         fontSize = window.getComputedStyle(selected).fontSize
       }
@@ -212,7 +212,7 @@ export const remapElement = (selected, changes, m) => {
           }
 
           let tspanFS = child.getAttribute('font-size')
-          if (!tspanFS) {
+          if (!tspanFS && child && child.nodeType === 1) {
             tspanFS = window.getComputedStyle(child).fontSize
           }
           const tspanFSNum = parseFloat(tspanFS)
@@ -234,7 +234,7 @@ export const remapElement = (selected, changes, m) => {
 
       // Handle tspan font-size scaling
       let tspanFS = selected.getAttribute('font-size')
-      if (!tspanFS) {
+      if (!tspanFS && selected && selected.nodeType === 1) {
         tspanFS = window.getComputedStyle(selected).fontSize
       }
       const tspanFSNum = parseFloat(tspanFS)

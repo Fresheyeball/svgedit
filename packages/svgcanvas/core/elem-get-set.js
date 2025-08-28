@@ -671,6 +671,8 @@ const setBoldMethod = (b) => {
       if (textDiv) {
         textDiv.style.fontWeight = b ? 'bold' : 'normal'
       }
+      // Also store font-weight on foreignObject for persistence
+      svgCanvas.changeSelectedAttribute('font-weight', b ? 'bold' : 'normal', [el])
     }
   })
 
@@ -716,22 +718,46 @@ const hasTextDecorationMethod = (value) => {
 const addTextDecorationMethod = (value) => {
   const { ChangeElementCommand, BatchCommand } = svgCanvas.history
   const selectedElements = svgCanvas.getSelectedElements()
-  const textElements = selectedElements.filter(el => el?.tagName === 'text')
+  const textElements = filterTextElements(selectedElements)
 
   const batchCmd = new BatchCommand()
   textElements.forEach(elem => {
-    const oldValue = elem.getAttribute('text-decoration') || ''
-    // Add the new text decoration value if it did not exist
-    if (!oldValue.includes(value)) {
-      batchCmd.addSubCommand(new ChangeElementCommand(elem, { 'text-decoration': oldValue }))
-      svgCanvas.changeSelectedAttributeNoUndo('text-decoration', (oldValue + ' ' + value).trim(), [elem])
+    if (elem.tagName === 'text') {
+      const oldValue = elem.getAttribute('text-decoration') || ''
+      // Add the new text decoration value if it did not exist
+      if (!oldValue.includes(value)) {
+        batchCmd.addSubCommand(new ChangeElementCommand(elem, { 'text-decoration': oldValue }))
+        svgCanvas.changeSelectedAttributeNoUndo('text-decoration', (oldValue + ' ' + value).trim(), [elem])
+      }
+    } else if (isTextForeignObject(elem)) {
+      // Handle foreignObject text elements
+      const textDiv = getTextDiv(elem)
+      if (textDiv) {
+        const oldFOValue = elem.getAttribute('text-decoration') || 'none'
+        const newValue = oldFOValue === 'none' ? value : (oldFOValue + ' ' + value).trim()
+
+        // Update div style
+        textDiv.style.textDecoration = newValue
+
+        // Store on foreignObject for persistence
+        batchCmd.addSubCommand(new ChangeElementCommand(elem, { 'text-decoration': oldFOValue }))
+        svgCanvas.changeSelectedAttributeNoUndo('text-decoration', newValue, [elem])
+      }
     }
   })
   if (!batchCmd.isEmpty()) {
     svgCanvas.undoMgr.addCommandToHistory(batchCmd)
   }
 
-  if (!textElements.some(el => el.textContent)) {
+  if (!textElements.some(el => {
+    if (el.tagName === 'text') {
+      return el.textContent
+    } else if (isTextForeignObject(el)) {
+      const textDiv = getTextDiv(el)
+      return textDiv ? textDiv.textContent : false
+    }
+    return false
+  })) {
     svgCanvas.textActions.setCursor()
   }
 }
@@ -744,19 +770,44 @@ const addTextDecorationMethod = (value) => {
 const removeTextDecorationMethod = (value) => {
   const { ChangeElementCommand, BatchCommand } = svgCanvas.history
   const selectedElements = svgCanvas.getSelectedElements()
-  const textElements = selectedElements.filter(el => el?.tagName === 'text')
+  const textElements = filterTextElements(selectedElements)
 
   const batchCmd = new BatchCommand()
   textElements.forEach(elem => {
-    const actualValues = elem.getAttribute('text-decoration') || ''
-    batchCmd.addSubCommand(new ChangeElementCommand(elem, { 'text-decoration': actualValues }))
-    svgCanvas.changeSelectedAttributeNoUndo('text-decoration', actualValues.replace(value, '').trim(), [elem])
+    if (elem.tagName === 'text') {
+      const actualValues = elem.getAttribute('text-decoration') || ''
+      batchCmd.addSubCommand(new ChangeElementCommand(elem, { 'text-decoration': actualValues }))
+      const newValue = actualValues.replace(value, '').trim()
+      svgCanvas.changeSelectedAttributeNoUndo('text-decoration', newValue || 'none', [elem])
+    } else if (isTextForeignObject(elem)) {
+      // Handle foreignObject text elements
+      const textDiv = getTextDiv(elem)
+      if (textDiv) {
+        const actualValues = elem.getAttribute('text-decoration') || 'none'
+        const newValue = actualValues.replace(value, '').trim() || 'none'
+
+        // Update div style
+        textDiv.style.textDecoration = newValue
+
+        // Store on foreignObject for persistence
+        batchCmd.addSubCommand(new ChangeElementCommand(elem, { 'text-decoration': actualValues }))
+        svgCanvas.changeSelectedAttributeNoUndo('text-decoration', newValue, [elem])
+      }
+    }
   })
   if (!batchCmd.isEmpty()) {
     svgCanvas.undoMgr.addCommandToHistory(batchCmd)
   }
 
-  if (!textElements.some(el => el.textContent)) {
+  if (!textElements.some(el => {
+    if (el.tagName === 'text') {
+      return el.textContent
+    } else if (isTextForeignObject(el)) {
+      const textDiv = getTextDiv(el)
+      return textDiv ? textDiv.textContent : false
+    }
+    return false
+  })) {
     svgCanvas.textActions.setCursor()
   }
 }
@@ -803,6 +854,8 @@ const setItalicMethod = (i) => {
       if (textDiv) {
         textDiv.style.fontStyle = i ? 'italic' : 'normal'
       }
+      // Also store font-style on foreignObject for persistence
+      svgCanvas.changeSelectedAttribute('font-style', i ? 'italic' : 'normal', [el])
     }
   })
 
@@ -945,6 +998,8 @@ const setFontFamilyMethod = (val) => {
       if (textDiv) {
         textDiv.style.fontFamily = val
       }
+      // Also store font-family on foreignObject for persistence
+      svgCanvas.changeSelectedAttribute('font-family', val, [el])
     }
   })
 
@@ -969,7 +1024,23 @@ const setFontFamilyMethod = (val) => {
 */
 const setFontColorMethod = (val) => {
   svgCanvas.setCurText('fill', val)
-  svgCanvas.changeSelectedAttribute('fill', val)
+
+  const textElements = filterTextElements(svgCanvas.getSelectedElements())
+
+  textElements.forEach(el => {
+    if (el.tagName === 'text') {
+      // Handle regular text elements
+      svgCanvas.changeSelectedAttribute('fill', val, [el])
+    } else if (isTextForeignObject(el)) {
+      // Handle foreignObject text elements
+      const textDiv = getTextDiv(el)
+      if (textDiv) {
+        textDiv.style.color = val
+      }
+      // Also store fill on foreignObject for persistence
+      svgCanvas.changeSelectedAttribute('fill', val, [el])
+    }
+  })
 }
 
 /**

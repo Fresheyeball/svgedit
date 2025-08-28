@@ -361,7 +361,7 @@ class TopPanel {
 
       if (panels[tagName]) {
         const curPanel = panels[tagName]
-        
+
         // Handle foreignObject text elements specially - don't show foreignObject_panel, only text_panel
         if (tagName === 'foreignObject' && elem.getAttribute('se:type') === 'text') {
           // Skip showing foreignObject_panel for text foreignObjects
@@ -387,25 +387,23 @@ class TopPanel {
             if (textDiv) {
               const computedStyle = window.getComputedStyle(textDiv)
 
-              // Update text panel controls based on div styles
-              $id('tool_italic').pressed = computedStyle.fontStyle === 'italic'
-              $id('tool_bold').pressed = computedStyle.fontWeight === 'bold' || parseInt(computedStyle.fontWeight) >= 700
-              $id('tool_text_decoration_underline').pressed = computedStyle.textDecoration.includes('underline')
-              $id('tool_text_decoration_linethrough').pressed = computedStyle.textDecoration.includes('line-through')
-              $id('tool_text_decoration_overline').pressed = computedStyle.textDecoration.includes('overline')
-              $id('tool_font_family').value = computedStyle.fontFamily.replace(/['"]/g, '')
-              // Map CSS text-align values to SVG text-anchor values
-              const textAlignToAnchorMap = {
-                left: 'start',
-                center: 'middle',
-                right: 'end',
-                justify: 'justify'
-              }
-              const textAlign = computedStyle.textAlign || 'center'
-              const textAnchor = elem.getAttribute('text-anchor') || textAlignToAnchorMap[textAlign] || 'middle'
-              $id('tool_text_anchor').setAttribute('value', textAnchor)
-              // Try to get font-size from computed style, fallback to foreignObject attribute
-              const fontSize = parseInt(computedStyle.fontSize) || parseInt(elem.getAttribute('font-size')) || 16
+              // Update text panel controls, prefer foreignObject attributes over computed styles
+              const foFontStyle = elem.getAttribute('font-style') || computedStyle.fontStyle
+              const foFontWeight = elem.getAttribute('font-weight') || computedStyle.fontWeight
+              const foTextDecoration = elem.getAttribute('text-decoration') || computedStyle.textDecoration || 'none'
+              const foFontFamily = elem.getAttribute('font-family') || computedStyle.fontFamily
+              const foTextAnchor = elem.getAttribute('text-anchor') || 'middle'
+
+              $id('tool_italic').pressed = foFontStyle === 'italic'
+              $id('tool_bold').pressed = foFontWeight === 'bold' || parseInt(foFontWeight) >= 700
+              $id('tool_text_decoration_underline').pressed = foTextDecoration.includes('underline')
+              $id('tool_text_decoration_linethrough').pressed = foTextDecoration.includes('line-through')
+              $id('tool_text_decoration_overline').pressed = foTextDecoration.includes('overline')
+              $id('tool_font_family').value = foFontFamily.replace(/['"]/g, '')
+              $id('tool_text_anchor').setAttribute('value', foTextAnchor)
+
+              // Try to get font-size from foreignObject attribute first, fallback to computed style
+              const fontSize = parseInt(elem.getAttribute('font-size')) || parseInt(computedStyle.fontSize) || 16
               $id('font_size').value = fontSize
               $id('tool_letter_spacing').value = 0 // Not supported yet
               $id('tool_word_spacing').value = 0 // Not supported yet
@@ -814,8 +812,8 @@ class TopPanel {
    */
   get anyTextSelected () {
     const selected = this.editor.svgCanvas.getSelectedElements()
-    return selected.filter(el => 
-      el.tagName === 'text' || 
+    return selected.filter(el =>
+      el.tagName === 'text' ||
       (el.tagName === 'foreignObject' && el.getAttribute('se:type') === 'text')
     ).length > 0
   }

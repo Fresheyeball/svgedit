@@ -37,7 +37,7 @@ const svgWhiteList_ = {
   feMorphology: ['in', 'operator', 'radius'],
   feOffset: ['dx', 'in', 'dy', 'result'],
   filter: ['color-interpolation-filters', 'filterRes', 'filterUnits', 'height', 'href', 'primitiveUnits', 'requiredFeatures', 'width', 'x', 'xlink:href', 'y'],
-  foreignObject: ['font-size', 'height', 'opacity', 'requiredFeatures', 'width', 'x', 'y', 'se:type', 'text-anchor'],
+  foreignObject: ['font-size', 'font-family', 'font-style', 'font-weight', 'fill', 'height', 'opacity', 'requiredFeatures', 'text-decoration', 'width', 'x', 'y', 'se:type', 'text-anchor'],
   g: ['clip-path', 'clip-rule', 'fill', 'fill-opacity', 'fill-rule', 'filter', 'mask', 'opacity', 'requiredFeatures', 'stroke', 'stroke-dasharray', 'stroke-dashoffset', 'stroke-linecap', 'stroke-linejoin', 'stroke-miterlimit', 'stroke-opacity', 'stroke-width', 'systemLanguage', 'font-family', 'font-size', 'font-style', 'font-weight', 'text-anchor'],
   image: ['clip-path', 'clip-rule', 'filter', 'height', 'mask', 'opacity', 'requiredFeatures', 'systemLanguage', 'width', 'x', 'href', 'xlink:href', 'xlink:title', 'y'],
   line: ['clip-path', 'clip-rule', 'fill', 'fill-opacity', 'fill-rule', 'filter', 'marker-end', 'marker-mid', 'marker-start', 'mask', 'opacity', 'requiredFeatures', 'stroke', 'stroke-dasharray', 'stroke-dashoffset', 'stroke-linecap', 'stroke-linejoin', 'stroke-miterlimit', 'stroke-opacity', 'stroke-width', 'systemLanguage', 'x1', 'x2', 'y1', 'y2'],

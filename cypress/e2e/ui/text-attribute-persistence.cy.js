@@ -25,16 +25,26 @@ describe('Text Attribute Persistence Tests', { testIsolation: false }, function 
     cy.get('#tool_text').click({ force: true })
     cy.get('#svgroot').trigger('mousedown', { clientX: 300, clientY: 200, force: true })
       .trigger('mouseup', { force: true })
+
+    // Wait for text input to appear
+    cy.get('#text').should('be.visible')
     cy.get('#text').type('Test Text', { force: true })
-    
-    // Select the text element and change font size
-    cy.get('[se\\:type="text"]').first().click({ force: true })
+
+    // Wait for text element to be created and be visible
+    cy.get('[se\\:type="text"]', { timeout: 10000 }).should('exist').first().click({ force: true })
+
+    // Wait for font size input to be available
+    cy.get('#font_size').should('be.visible')
     cy.get('#font_size').shadow().find('elix-number-spin-box').eq(0).shadow().find('#inner').eq(0)
-      .type('{selectall}24', { force: true })
-    
+      .clear({ force: true })
+      .type('24', { force: true })
+
+    // Wait a bit for the change to propagate
+    cy.wait(500)
+
     // Verify font-size attribute is set on foreignObject
     cy.get('[se\\:type="text"]').first().should('have.attr', 'font-size', '24')
-    
+
     // Save and reload
     cy.get('#tool_source').click({ force: true })
     cy.get('#svg_source_textarea').then(($textarea) => {
@@ -42,7 +52,7 @@ describe('Text Attribute Persistence Tests', { testIsolation: false }, function 
       expect(svgContent).to.include('font-size="24"')
     })
     cy.get('#tool_source_save').click({ force: true })
-    
+
     // Verify font-size is restored in the div
     cy.get('[se\\:type="text"] div').should('have.css', 'font-size', '24px')
   })
@@ -53,15 +63,15 @@ describe('Text Attribute Persistence Tests', { testIsolation: false }, function 
     cy.get('#svgroot').trigger('mousedown', { clientX: 300, clientY: 200, force: true })
       .trigger('mouseup', { force: true })
     cy.get('#text').type('Test Text', { force: true })
-    
+
     // Select the text element and change font family
     cy.get('[se\\:type="text"]').first().click({ force: true })
     cy.get('#tool_font_family').shadow().find('#select').eq(0)
       .select('Verdana', { force: true })
-    
+
     // Verify font-family attribute is set on foreignObject
     cy.get('[se\\:type="text"]').first().should('have.attr', 'font-family', 'Verdana')
-    
+
     // Save and reload
     cy.get('#tool_source').click({ force: true })
     cy.get('#svg_source_textarea').then(($textarea) => {
@@ -69,7 +79,7 @@ describe('Text Attribute Persistence Tests', { testIsolation: false }, function 
       expect(svgContent).to.include('font-family="Verdana"')
     })
     cy.get('#tool_source_save').click({ force: true })
-    
+
     // Verify font-family is restored in the div
     cy.get('[se\\:type="text"] div').should('have.css', 'font-family').and('include', 'Verdana')
   })
@@ -80,14 +90,14 @@ describe('Text Attribute Persistence Tests', { testIsolation: false }, function 
     cy.get('#svgroot').trigger('mousedown', { clientX: 300, clientY: 200, force: true })
       .trigger('mouseup', { force: true })
     cy.get('#text').type('Test Text', { force: true })
-    
+
     // Select the text element and make it bold
     cy.get('[se\\:type="text"]').first().click({ force: true })
     cy.get('#tool_bold').click({ force: true })
-    
+
     // Verify font-weight attribute is set on foreignObject
     cy.get('[se\\:type="text"]').first().should('have.attr', 'font-weight', 'bold')
-    
+
     // Save and reload
     cy.get('#tool_source').click({ force: true })
     cy.get('#svg_source_textarea').then(($textarea) => {
@@ -95,7 +105,7 @@ describe('Text Attribute Persistence Tests', { testIsolation: false }, function 
       expect(svgContent).to.include('font-weight="bold"')
     })
     cy.get('#tool_source_save').click({ force: true })
-    
+
     // Verify font-weight is restored in the div
     cy.get('[se\\:type="text"] div').should('have.css', 'font-weight', 'bold')
   })
@@ -106,14 +116,14 @@ describe('Text Attribute Persistence Tests', { testIsolation: false }, function 
     cy.get('#svgroot').trigger('mousedown', { clientX: 300, clientY: 200, force: true })
       .trigger('mouseup', { force: true })
     cy.get('#text').type('Test Text', { force: true })
-    
+
     // Select the text element and make it italic
     cy.get('[se\\:type="text"]').first().click({ force: true })
     cy.get('#tool_italic').click({ force: true })
-    
+
     // Verify font-style attribute is set on foreignObject
     cy.get('[se\\:type="text"]').first().should('have.attr', 'font-style', 'italic')
-    
+
     // Save and reload
     cy.get('#tool_source').click({ force: true })
     cy.get('#svg_source_textarea').then(($textarea) => {
@@ -121,7 +131,7 @@ describe('Text Attribute Persistence Tests', { testIsolation: false }, function 
       expect(svgContent).to.include('font-style="italic"')
     })
     cy.get('#tool_source_save').click({ force: true })
-    
+
     // Verify font-style is restored in the div
     cy.get('[se\\:type="text"] div').should('have.css', 'font-style', 'italic')
   })
@@ -132,14 +142,14 @@ describe('Text Attribute Persistence Tests', { testIsolation: false }, function 
     cy.get('#svgroot').trigger('mousedown', { clientX: 300, clientY: 200, force: true })
       .trigger('mouseup', { force: true })
     cy.get('#text').type('Test Text', { force: true })
-    
+
     // Select the text element and add underline
     cy.get('[se\\:type="text"]').first().click({ force: true })
     cy.get('#tool_text_decoration_underline').click({ force: true })
-    
+
     // Verify text-decoration attribute is set on foreignObject
     cy.get('[se\\:type="text"]').first().should('have.attr', 'text-decoration').and('include', 'underline')
-    
+
     // Save and reload
     cy.get('#tool_source').click({ force: true })
     cy.get('#svg_source_textarea').then(($textarea) => {
@@ -147,7 +157,7 @@ describe('Text Attribute Persistence Tests', { testIsolation: false }, function 
       expect(svgContent).to.include('text-decoration').and.include('underline')
     })
     cy.get('#tool_source_save').click({ force: true })
-    
+
     // Verify text-decoration is restored in the div
     cy.get('[se\\:type="text"] div').should('have.css', 'text-decoration').and('include', 'underline')
   })
@@ -158,7 +168,7 @@ describe('Text Attribute Persistence Tests', { testIsolation: false }, function 
     cy.get('#svgroot').trigger('mousedown', { clientX: 300, clientY: 200, force: true })
       .trigger('mouseup', { force: true })
     cy.get('#text').type('Test Text', { force: true })
-    
+
     // Select the text element and change color
     cy.get('[se\\:type="text"]').first().click({ force: true })
     cy.get('#fill_color').shadow().find('#picker').eq(0).click({ force: true })
@@ -168,10 +178,10 @@ describe('Text Attribute Persistence Tests', { testIsolation: false }, function 
     cy.get('#fill_color').shadow().find('#color_picker').eq(0)
       .find('#jGraduate_colPick').eq(0).find('#jPicker-table').eq(0)
       .find('#Ok').eq(0).click({ force: true })
-    
+
     // Verify fill attribute is set on foreignObject
     cy.get('[se\\:type="text"]').first().should('have.attr', 'fill').and('not.equal', '')
-    
+
     // Save and reload
     cy.get('#tool_source').click({ force: true })
     cy.get('#svg_source_textarea').then(($textarea) => {
@@ -179,7 +189,7 @@ describe('Text Attribute Persistence Tests', { testIsolation: false }, function 
       expect(svgContent).to.include('fill=')
     })
     cy.get('#tool_source_save').click({ force: true })
-    
+
     // Verify color is restored in the div (should not be black)
     cy.get('[se\\:type="text"] div').should('have.css', 'color').and('not.equal', 'rgb(0, 0, 0)')
   })
@@ -190,15 +200,15 @@ describe('Text Attribute Persistence Tests', { testIsolation: false }, function 
     cy.get('#svgroot').trigger('mousedown', { clientX: 300, clientY: 200, force: true })
       .trigger('mouseup', { force: true })
     cy.get('#text').type('Test Text', { force: true })
-    
+
     // Select the text element and change alignment to right
     cy.get('[se\\:type="text"]').first().click({ force: true })
     cy.get('#tool_text_anchor').shadow().find('#select').eq(0)
       .select('end', { force: true })
-    
+
     // Verify text-anchor attribute is set on foreignObject
     cy.get('[se\\:type="text"]').first().should('have.attr', 'text-anchor', 'end')
-    
+
     // Save and reload
     cy.get('#tool_source').click({ force: true })
     cy.get('#svg_source_textarea').then(($textarea) => {
@@ -206,7 +216,7 @@ describe('Text Attribute Persistence Tests', { testIsolation: false }, function 
       expect(svgContent).to.include('text-anchor="end"')
     })
     cy.get('#tool_source_save').click({ force: true })
-    
+
     // Verify text-align is restored in the div
     cy.get('[se\\:type="text"] div').should('have.css', 'text-align', 'right')
   })
@@ -217,27 +227,27 @@ describe('Text Attribute Persistence Tests', { testIsolation: false }, function 
     cy.get('#svgroot').trigger('mousedown', { clientX: 300, clientY: 200, force: true })
       .trigger('mouseup', { force: true })
     cy.get('#text').type('Complex Text', { force: true })
-    
+
     // Select the text element and apply multiple formatting
     cy.get('[se\\:type="text"]').first().click({ force: true })
-    
+
     // Change font size to 20
     cy.get('#font_size').shadow().find('elix-number-spin-box').eq(0).shadow().find('#inner').eq(0)
       .type('{selectall}20', { force: true })
-    
+
     // Make it bold
     cy.get('#tool_bold').click({ force: true })
-    
+
     // Make it italic
     cy.get('#tool_italic').click({ force: true })
-    
+
     // Add underline
     cy.get('#tool_text_decoration_underline').click({ force: true })
-    
+
     // Change font family
     cy.get('#tool_font_family').shadow().find('#select').eq(0)
       .select('Verdana', { force: true })
-    
+
     // Verify all attributes are set on foreignObject
     cy.get('[se\\:type="text"]').first()
       .should('have.attr', 'font-size', '20')
@@ -245,7 +255,7 @@ describe('Text Attribute Persistence Tests', { testIsolation: false }, function 
       .should('have.attr', 'font-style', 'italic')
       .should('have.attr', 'text-decoration').and('include', 'underline')
       .should('have.attr', 'font-family', 'Verdana')
-    
+
     // Save and reload
     cy.get('#tool_source').click({ force: true })
     cy.get('#svg_source_textarea').then(($textarea) => {
@@ -257,7 +267,7 @@ describe('Text Attribute Persistence Tests', { testIsolation: false }, function 
       expect(svgContent).to.include('font-family="Verdana"')
     })
     cy.get('#tool_source_save').click({ force: true })
-    
+
     // Verify all styles are restored in the div
     cy.get('[se\\:type="text"] div')
       .should('have.css', 'font-size', '20px')
@@ -284,7 +294,7 @@ describe('Text Attribute Persistence Tests', { testIsolation: false }, function 
        </g>
      </svg>`, { force: true, parseSpecialCharSequences: false })
     cy.get('#tool_source_save').click({ force: true })
-    
+
     // Verify that the restoration logic works
     cy.get('[se\\:type="text"] div')
       .should('have.css', 'font-size', '18px')
@@ -312,10 +322,10 @@ describe('Text Attribute Persistence Tests', { testIsolation: false }, function 
        </g>
      </svg>`, { force: true, parseSpecialCharSequences: false })
     cy.get('#tool_source_save').click({ force: true })
-    
+
     // Select the text element
     cy.get('[se\\:type="text"]').first().click({ force: true })
-    
+
     // Verify UI panel shows correct values
     cy.get('#font_size').shadow().find('elix-number-spin-box').eq(0).shadow().find('#inner').eq(0)
       .should('have.value', '22')

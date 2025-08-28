@@ -1366,7 +1366,12 @@ const mouseDownEvent = (evt) => {
           opacity,
           'se:type': 'text', // Custom attribute to identify as text
           'text-anchor': 'middle', // Default to center alignment
-          'font-size': fontSize // Store font-size on foreignObject for persistence
+          'font-size': fontSize, // Store font-size on foreignObject for persistence
+          'font-family': fontFamily, // Store font-family for persistence
+          fill, // Store text color for persistence
+          'font-weight': 'normal', // Default font-weight
+          'font-style': 'normal', // Default font-style
+          'text-decoration': 'none' // Default text-decoration
         }
       })
 
