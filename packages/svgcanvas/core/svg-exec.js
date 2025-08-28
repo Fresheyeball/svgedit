@@ -555,6 +555,23 @@ const setSvgString = (xmlString, preventUndo) => {
       })
     })
 
+    // Restore font-size for foreignObject text elements
+    const foreignObjects = content.querySelectorAll('foreignObject[se\\:type="text"]')
+    Array.prototype.forEach.call(foreignObjects, fo => {
+      const fontSize = fo.getAttribute('font-size')
+      if (fontSize) {
+        const textDiv = fo.querySelector('div')
+        if (textDiv) {
+          // Always ensure font-size is set correctly from the attribute
+          // This handles cases where the div's inline style might be incomplete
+          const currentFontSize = textDiv.style.fontSize
+          if (!currentFontSize || currentFontSize === 'inherit' || currentFontSize === 'initial') {
+            textDiv.style.fontSize = fontSize + 'px'
+          }
+        }
+      }
+    })
+
     // Percentage width/height, so let's base it on visible elements
     if (percs) {
       const bb = getStrokedBBoxDefaultVisible()

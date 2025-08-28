@@ -404,7 +404,9 @@ class TopPanel {
               const textAlign = computedStyle.textAlign || 'center'
               const textAnchor = elem.getAttribute('text-anchor') || textAlignToAnchorMap[textAlign] || 'middle'
               $id('tool_text_anchor').setAttribute('value', textAnchor)
-              $id('font_size').value = parseInt(computedStyle.fontSize)
+              // Try to get font-size from computed style, fallback to foreignObject attribute
+              const fontSize = parseInt(computedStyle.fontSize) || parseInt(elem.getAttribute('font-size')) || 16
+              $id('font_size').value = fontSize
               $id('tool_letter_spacing').value = 0 // Not supported yet
               $id('tool_word_spacing').value = 0 // Not supported yet
               $id('tool_text_length').value = 0 // Not applicable

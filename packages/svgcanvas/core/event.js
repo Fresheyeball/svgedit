@@ -1365,7 +1365,8 @@ const mouseDownEvent = (evt) => {
           id: svgCanvas.getNextId(),
           opacity,
           'se:type': 'text', // Custom attribute to identify as text
-          'text-anchor': 'middle' // Default to center alignment
+          'text-anchor': 'middle', // Default to center alignment
+          'font-size': fontSize // Store font-size on foreignObject for persistence
         }
       })
 

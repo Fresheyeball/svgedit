@@ -1010,6 +1010,8 @@ const setFontSizeMethod = (val) => {
       if (textDiv) {
         textDiv.style.fontSize = val + 'px'
       }
+      // Also store font-size on foreignObject for persistence
+      svgCanvas.changeSelectedAttribute('font-size', val, [el])
     }
   })
 
