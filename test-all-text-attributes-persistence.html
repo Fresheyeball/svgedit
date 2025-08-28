@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Complete Text Attributes Persistence Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .pass {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .fail {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        #svg-container {
+            border: 2px solid #ddd;
+            margin: 20px 0;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+        }
+        h1 { color: #2c3e50; }
+        h2 { color: #34495e; }
+        h3 { color: #7f8c8d; }
+        .attribute-details {
+            font-size: 0.9em;
+            margin-top: 5px;
+            font-family: monospace;
+            background: #f8f9fa;
+            padding: 5px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <h1>📝 Complete Text Attributes Persistence Test for SVGEdit</h1>
+    
+    <div class="test-container">
+        <h2>Test Overview</h2>
+        <p>This test verifies that all text formatting attributes (font-size, font-family, font-weight, font-style, text-decoration, fill, text-anchor) 
+        are properly stored as attributes on foreignObject elements and correctly restored when loading SVG documents.</p>
+    </div>
+    
+    <div id="test-results"></div>
+    
+    <div class="test-container">
+        <h2>Test SVG Content</h2>
+        <div id="svg-container"></div>
+    </div>
+    
+    <script>
+        // Comprehensive test SVG with various text formatting combinations
+        const testSvg = `<?xml version="1.0"?>
+<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" xmlns:se="http://svg-edit.googlecode.com">
+ <g class="layer">
+  <title>Layer 1</title>
+  <!-- Large Arial Bold Italic Underlined Red Text (Center Aligned) -->
+  <foreignObject x="50" y="50" width="300" height="50" id="text_1" se:type="text" 
+                 font-size="24" font-family="Arial" font-weight="bold" font-style="italic" 
+                 text-decoration="underline" fill="red" text-anchor="middle">
+   <div xmlns="http://www.w3.org/1999/xhtml" style="width: 100%; height: 100%; font-family: Arial; font-size: 24px; font-weight: bold; font-style: italic; text-decoration: underline; color: red; text-align: center; display: block; white-space: pre-wrap; overflow-wrap: break-word; padding: 4px; box-sizing: border-box; cursor: text; min-height: 100%; outline: none;">Bold Italic Underlined</div>
+  </foreignObject>
+  
+  <!-- Medium Verdana Normal Green Text (Left Aligned) -->
+  <foreignObject x="50" y="150" width="300" height="40" id="text_2" se:type="text"
+                 font-size="16" font-family="Verdana" font-weight="normal" font-style="normal" 
+                 text-decoration="none" fill="green" text-anchor="start">
+   <div xmlns="http://www.w3.org/1999/xhtml" style="width: 100%; height: 100%; font-family: Verdana; font-size: 16px; color: green; text-align: left; display: block; white-space: pre-wrap; overflow-wrap: break-word; padding: 4px; box-sizing: border-box; cursor: text; min-height: 100%; outline: none;">Normal Green Text</div>
+  </foreignObject>
+  
+  <!-- Small Times Line-through Blue Text (Right Aligned) -->
+  <foreignObject x="50" y="250" width="300" height="30" id="text_3" se:type="text"
+                 font-size="12" font-family="Times New Roman" font-weight="normal" font-style="normal" 
+                 text-decoration="line-through" fill="blue" text-anchor="end">
+   <div xmlns="http://www.w3.org/1999/xhtml" style="width: 100%; height: 100%; font-family: 'Times New Roman'; font-size: 12px; text-decoration: line-through; color: blue; text-align: right; display: block; white-space: pre-wrap; overflow-wrap: break-word; padding: 4px; box-sizing: border-box; cursor: text; min-height: 100%; outline: none;">Struck Through Text</div>
+  </foreignObject>
+  
+  <!-- Test missing inline styles - only foreignObject attributes -->
+  <foreignObject x="50" y="350" width="300" height="40" id="text_4" se:type="text"
+                 font-size="18" font-family="Georgia" font-weight="bold" font-style="normal" 
+                 text-decoration="overline underline" fill="purple" text-anchor="middle">
+   <div xmlns="http://www.w3.org/1999/xhtml" style="width: 100%; height: 100%; display: block; white-space: pre-wrap; overflow-wrap: break-word; padding: 4px; box-sizing: border-box; cursor: text; min-height: 100%; outline: none;">Attributes Only (No Inline Styles)</div>
+  </foreignObject>
+  
+  <!-- Complex formatting test -->
+  <foreignObject x="50" y="450" width="350" height="60" id="text_5" se:type="text"
+                 font-size="20" font-family="monospace" font-weight="bold" font-style="italic" 
+                 text-decoration="underline overline" fill="#ff6b35" text-anchor="start">
+   <div xmlns="http://www.w3.org/1999/xhtml" style="width: 100%; height: 100%; font-family: monospace; font-size: 20px; font-weight: bold; font-style: italic; text-decoration: underline overline; color: #ff6b35; text-align: left; display: block; white-space: pre-wrap; overflow-wrap: break-word; padding: 4px; box-sizing: border-box; cursor: text; min-height: 100%; outline: none;">Complex: Bold Italic Mono
+With Multiple Decorations</div>
+  </foreignObject>
+ </g>
+</svg>`;
+        
+        const resultsDiv = document.getElementById('test-results');
+        const svgContainer = document.getElementById('svg-container');
+        
+        function addResult(category, test, passed, details = '') {
+            const container = document.createElement('div');
+            container.className = 'test-container';
+            
+            const title = document.createElement('h3');
+            title.innerHTML = `${category}: ${test}`;
+            container.appendChild(title);
+            
+            const div = document.createElement('div');
+            div.className = `test-result ${passed ? 'pass' : 'fail'}`;
+            div.innerHTML = `<strong>${passed ? '✓ PASSED' : '✗ FAILED'}</strong>`;
+            
+            if (details) {
+                const detailsDiv = document.createElement('div');
+                detailsDiv.className = 'attribute-details';
+                detailsDiv.innerHTML = details;
+                div.appendChild(detailsDiv);
+            }
+            
+            container.appendChild(div);
+            resultsDiv.appendChild(container);
+        }
+        
+        // Parse and display the SVG
+        const parser = new DOMParser();
+        const svgDoc = parser.parseFromString(testSvg, 'image/svg+xml');
+        const svgElement = svgDoc.documentElement;
+        svgContainer.appendChild(svgElement);
+        
+        // Test cases
+        const testCases = [
+            {
+                id: 'text_1',
+                name: 'Bold Italic Underlined Red Text',
+                expected: {
+                    'font-size': '24',
+                    'font-family': 'Arial',
+                    'font-weight': 'bold',
+                    'font-style': 'italic',
+                    'text-decoration': 'underline',
+                    'fill': 'red',
+                    'text-anchor': 'middle'
+                }
+            },
+            {
+                id: 'text_2',
+                name: 'Normal Green Text',
+                expected: {
+                    'font-size': '16',
+                    'font-family': 'Verdana',
+                    'font-weight': 'normal',
+                    'font-style': 'normal',
+                    'text-decoration': 'none',
+                    'fill': 'green',
+                    'text-anchor': 'start'
+                }
+            },
+            {
+                id: 'text_3',
+                name: 'Line-through Blue Text',
+                expected: {
+                    'font-size': '12',
+                    'font-family': 'Times New Roman',
+                    'text-decoration': 'line-through',
+                    'fill': 'blue',
+                    'text-anchor': 'end'
+                }
+            },
+            {
+                id: 'text_4',
+                name: 'Attributes Only (No Inline Styles)',
+                expected: {
+                    'font-size': '18',
+                    'font-family': 'Georgia',
+                    'font-weight': 'bold',
+                    'text-decoration': 'overline underline',
+                    'fill': 'purple',
+                    'text-anchor': 'middle'
+                }
+            },
+            {
+                id: 'text_5',
+                name: 'Complex Formatting',
+                expected: {
+                    'font-size': '20',
+                    'font-family': 'monospace',
+                    'font-weight': 'bold',
+                    'font-style': 'italic',
+                    'text-decoration': 'underline overline',
+                    'fill': '#ff6b35',
+                    'text-anchor': 'start'
+                }
+            }
+        ];
+        
+        let totalTests = 0;
+        let passedTests = 0;
+        
+        testCases.forEach(testCase => {
+            const element = svgElement.querySelector(`#${testCase.id}`);
+            
+            if (!element) {
+                addResult('Element Check', testCase.name, false, `Element with id '${testCase.id}' not found`);
+                totalTests++;
+                return;
+            }
+            
+            // Test 1: Check foreignObject attributes
+            let attributesPassed = true;
+            let attributeDetails = [];
+            
+            Object.entries(testCase.expected).forEach(([attr, expected]) => {
+                const actual = element.getAttribute(attr);
+                if (actual === expected) {
+                    attributeDetails.push(`${attr}: "${actual}" ✓`);
+                } else {
+                    attributesPassed = false;
+                    attributeDetails.push(`${attr}: expected "${expected}", got "${actual || 'null'}" ✗`);
+                }
+            });
+            
+            totalTests++;
+            if (attributesPassed) passedTests++;
+            addResult('Attribute Persistence', testCase.name, attributesPassed, attributeDetails.join('<br>'));
+            
+            // Test 2: Check div style restoration
+            const textDiv = element.querySelector('div');
+            if (textDiv) {
+                let stylesPassed = true;
+                let styleDetails = [];
+                
+                const computedStyle = window.getComputedStyle(textDiv);
+                
+                // Check font-size
+                if (testCase.expected['font-size']) {
+                    const expectedSize = parseInt(testCase.expected['font-size']);
+                    const actualSize = parseInt(computedStyle.fontSize);
+                    if (actualSize === expectedSize) {
+                        styleDetails.push(`font-size: ${actualSize}px ✓`);
+                    } else {
+                        stylesPassed = false;
+                        styleDetails.push(`font-size: expected ${expectedSize}px, got ${actualSize}px ✗`);
+                    }
+                }
+                
+                // Check color (fill)
+                if (testCase.expected.fill) {
+                    const actualColor = computedStyle.color;
+                    // Convert hex to rgb for comparison if needed
+                    styleDetails.push(`color: ${actualColor} (expected: ${testCase.expected.fill})`);
+                }
+                
+                // Check font-family
+                if (testCase.expected['font-family']) {
+                    const actualFamily = computedStyle.fontFamily;
+                    styleDetails.push(`font-family: ${actualFamily}`);
+                }
+                
+                // Check font-weight
+                if (testCase.expected['font-weight']) {
+                    const actualWeight = computedStyle.fontWeight;
+                    styleDetails.push(`font-weight: ${actualWeight}`);
+                }
+                
+                // Check font-style
+                if (testCase.expected['font-style']) {
+                    const actualStyle = computedStyle.fontStyle;
+                    styleDetails.push(`font-style: ${actualStyle}`);
+                }
+                
+                // Check text-decoration
+                if (testCase.expected['text-decoration']) {
+                    const actualDecoration = computedStyle.textDecoration;
+                    styleDetails.push(`text-decoration: ${actualDecoration}`);
+                }
+                
+                // Check text alignment
+                if (testCase.expected['text-anchor']) {
+                    const actualAlign = computedStyle.textAlign;
+                    styleDetails.push(`text-align: ${actualAlign}`);
+                }
+                
+                totalTests++;
+                if (stylesPassed) passedTests++;
+                addResult('Style Application', testCase.name, stylesPassed, styleDetails.join('<br>'));
+            } else {
+                totalTests++;
+                addResult('Style Application', testCase.name, false, 'No div element found inside foreignObject');
+            }
+        });
+        
+        // Summary
+        const successRate = Math.round((passedTests / totalTests) * 100);
+        const summaryDiv = document.createElement('div');
+        summaryDiv.className = 'test-container';
+        summaryDiv.innerHTML = `
+            <h2>📊 Test Summary</h2>
+            <div class="test-result ${successRate === 100 ? 'pass' : (successRate >= 80 ? 'warning' : 'fail')}">
+                <h3>Overall Result: ${passedTests}/${totalTests} tests passed (${successRate}%)</h3>
+                ${successRate === 100 ? 
+                    '🎉 All tests passed! Text attribute persistence is working correctly.' :
+                    successRate >= 80 ?
+                    '⚠️ Most tests passed, but some issues were found.' :
+                    '❌ Multiple test failures detected. Text attribute persistence needs attention.'
+                }
+            </div>
+        `;
+        resultsDiv.insertBefore(summaryDiv, resultsDiv.firstChild);
+        
+        // Detailed attribute inspection
+        const detailsDiv = document.createElement('div');
+        detailsDiv.className = 'test-container';
+        detailsDiv.innerHTML = '<h2>🔍 Detailed Attribute Inspection</h2>';
+        
+        testCases.forEach(testCase => {
+            const element = svgElement.querySelector(`#${testCase.id}`);
+            if (element) {
+                const attrs = Array.from(element.attributes).map(attr => `${attr.name}="${attr.value}"`).join('<br>');
+                detailsDiv.innerHTML += `<h4>${testCase.name} (${testCase.id})</h4><div class="attribute-details">${attrs}</div>`;
+            }
+        });
+        
+        resultsDiv.appendChild(detailsDiv);
+    </script>
+</body>
+</html>

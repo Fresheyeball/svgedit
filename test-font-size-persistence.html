@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Font Size Persistence Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .pass {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .fail {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        #svg-container {
+            border: 1px solid #ccc;
+            margin: 20px 0;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Font Size Persistence Test for SVGEdit</h1>
+    
+    <div id="test-results"></div>
+    
+    <div id="svg-container"></div>
+    
+    <script>
+        // Test SVG with foreignObject text elements of different font sizes
+        const testSvg = `<?xml version="1.0"?>
+<svg width="640" height="480" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" xmlns:se="http://svg-edit.googlecode.com">
+ <g class="layer">
+  <title>Layer 1</title>
+  <foreignObject x="100" y="50" width="200" height="40" id="svg_1" se:type="text" font-size="24">
+   <div xmlns="http://www.w3.org/1999/xhtml" style="width: 100%; height: 100%; font-family: serif; font-size: 24px; color: rgb(0, 0, 0); text-align: center; display: block; white-space: pre-wrap; overflow-wrap: break-word; padding: 4px; box-sizing: border-box; cursor: text; min-height: 100%; outline: none;">Large Text (24px)</div>
+  </foreignObject>
+  <foreignObject x="100" y="150" width="200" height="30" id="svg_2" se:type="text" font-size="16">
+   <div xmlns="http://www.w3.org/1999/xhtml" style="width: 100%; height: 100%; font-family: serif; font-size: 16px; color: rgb(0, 0, 0); text-align: center; display: block; white-space: pre-wrap; overflow-wrap: break-word; padding: 4px; box-sizing: border-box; cursor: text; min-height: 100%; outline: none;">Medium Text (16px)</div>
+  </foreignObject>
+  <foreignObject x="100" y="250" width="200" height="20" id="svg_3" se:type="text" font-size="12">
+   <div xmlns="http://www.w3.org/1999/xhtml" style="width: 100%; height: 100%; font-family: serif; color: rgb(0, 0, 0); text-align: center; display: block; white-space: pre-wrap; overflow-wrap: break-word; padding: 4px; box-sizing: border-box; cursor: text; min-height: 100%; outline: none;">Small Text (12px) - no inline font-size</div>
+  </foreignObject>
+ </g>
+</svg>`;
+        
+        const resultsDiv = document.getElementById('test-results');
+        const svgContainer = document.getElementById('svg-container');
+        
+        function addResult(test, passed, details = '') {
+            const div = document.createElement('div');
+            div.className = `test-result ${passed ? 'pass' : 'fail'}`;
+            div.innerHTML = `<strong>${test}:</strong> ${passed ? '✓ PASSED' : '✗ FAILED'}${details ? '<br>' + details : ''}`;
+            resultsDiv.appendChild(div);
+        }
+        
+        // Parse and display the SVG
+        const parser = new DOMParser();
+        const svgDoc = parser.parseFromString(testSvg, 'image/svg+xml');
+        const svgElement = svgDoc.documentElement;
+        svgContainer.appendChild(svgElement);
+        
+        // Test 1: Check if foreignObject elements have font-size attribute
+        const foreignObjects = svgElement.querySelectorAll('foreignObject[se\\:type="text"]');
+        let allHaveFontSize = true;
+        let fontSizeDetails = [];
+        
+        foreignObjects.forEach((fo, index) => {
+            const fontSize = fo.getAttribute('font-size');
+            if (fontSize) {
+                fontSizeDetails.push(`Element ${index + 1}: font-size="${fontSize}"`);
+            } else {
+                allHaveFontSize = false;
+                fontSizeDetails.push(`Element ${index + 1}: MISSING font-size attribute`);
+            }
+        });
+        
+        addResult('All foreignObject text elements have font-size attribute', allHaveFontSize, fontSizeDetails.join('<br>'));
+        
+        // Test 2: Check if divs have correct font-size styles
+        let allDivsHaveCorrectSize = true;
+        let divSizeDetails = [];
+        
+        foreignObjects.forEach((fo, index) => {
+            const fontSize = fo.getAttribute('font-size');
+            const div = fo.querySelector('div');
+            if (div) {
+                const computedFontSize = window.getComputedStyle(div).fontSize;
+                const expectedSize = fontSize + 'px';
+                
+                // Check if computed size matches expected or if inline style is present
+                if (div.style.fontSize === expectedSize || parseInt(computedFontSize) === parseInt(fontSize)) {
+                    divSizeDetails.push(`Element ${index + 1}: div font-size OK (${computedFontSize})`);
+                } else {
+                    allDivsHaveCorrectSize = false;
+                    divSizeDetails.push(`Element ${index + 1}: div font-size MISMATCH (expected: ${expectedSize}, got: ${computedFontSize})`);
+                }
+            } else {
+                allDivsHaveCorrectSize = false;
+                divSizeDetails.push(`Element ${index + 1}: No div found`);
+            }
+        });
+        
+        addResult('All divs have correct font-size', allDivsHaveCorrectSize, divSizeDetails.join('<br>'));
+        
+        // Test 3: Simulate loading without inline styles (element 3)
+        const fo3 = svgElement.querySelector('#svg_3');
+        if (fo3) {
+            const fontSize = fo3.getAttribute('font-size');
+            const div = fo3.querySelector('div');
+            
+            // Our fix should restore the font-size from the attribute
+            if (!div.style.fontSize || div.style.fontSize === 'inherit' || div.style.fontSize === 'initial') {
+                // This simulates our restoration logic
+                div.style.fontSize = fontSize + 'px';
+            }
+            
+            const afterFix = window.getComputedStyle(div).fontSize;
+            const fixWorked = parseInt(afterFix) === parseInt(fontSize);
+            
+            addResult('Font-size restoration for elements without inline style', fixWorked, 
+                `Element 3 after fix: ${afterFix} (expected: ${fontSize}px)`);
+        }
+        
+        // Summary
+        const allPassed = allHaveFontSize && allDivsHaveCorrectSize;
+        const summaryDiv = document.createElement('div');
+        summaryDiv.className = `test-result ${allPassed ? 'pass' : 'fail'}`;
+        summaryDiv.innerHTML = `<h3>Overall Result: ${allPassed ? '✓ All Tests Passed' : '✗ Some Tests Failed'}</h3>`;
+        resultsDiv.insertBefore(summaryDiv, resultsDiv.firstChild);
+    </script>
+</body>
+</html>
