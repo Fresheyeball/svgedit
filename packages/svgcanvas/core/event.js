@@ -1461,6 +1461,8 @@ const DOMMouseScrollEvent = (e) => {
   svgCanvas.setRootSctm($id('svgcontent').querySelector('g').getScreenCTM().inverse())
 
   const workarea = document.getElementById('workarea')
+  if (!workarea) return // Early return if workarea element doesn't exist
+
   const scrbar = 15
   const rulerwidth = svgCanvas.getCurConfig().showRulers ? 16 : 0
 

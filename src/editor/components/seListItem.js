@@ -41,6 +41,10 @@ export class SeListItem extends HTMLElement {
     this.$img.setAttribute('style', 'display: none;')
     this.imgPath = svgEditor.configObj.curConfig.imgPath
     this.$menuitem.addEventListener('mousedown', e => {
+      // Prevent default behavior to avoid any unwanted navigation
+      e.preventDefault()
+      e.stopPropagation()
+
       this.$menuitem.dispatchEvent(new CustomEvent('selectedindexchange', {
         bubbles: true,
         composed: true,

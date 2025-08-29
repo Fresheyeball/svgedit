@@ -864,6 +864,14 @@ class TopPanel {
    * @returns {false}
    */
   clickTextAnchor (evt) {
+    // Prevent any default behavior or event propagation that might trigger navigation
+    if (evt.preventDefault) {
+      evt.preventDefault()
+    }
+    if (evt.stopPropagation) {
+      evt.stopPropagation()
+    }
+
     this.editor.svgCanvas.setTextAnchor(evt.detail.value)
     return false
   }
