@@ -890,27 +890,27 @@ const setTextAnchorMethod = (value) => {
   // Handle foreignObject text elements
   const foreignObjectTextElements = textElements.filter(el => isTextForeignObject(el))
 
-  foreignObjectTextElements.forEach(el => {
-    const textDiv = el.querySelector('div')
-    if (textDiv) {
-      // Map SVG text-anchor values to CSS text-align values
-      const textAlignMap = {
-        start: 'left',
-        middle: 'center',
-        end: 'right',
-        justify: 'justify'
+  // Use changeSelectedAttribute for foreignObject text elements too
+  if (foreignObjectTextElements.length > 0) {
+    svgCanvas.changeSelectedAttribute('text-anchor', value, foreignObjectTextElements)
+
+    // Also update the CSS styles for each element
+    foreignObjectTextElements.forEach(el => {
+      const textDiv = el.querySelector('div')
+      if (textDiv) {
+        // Map SVG text-anchor values to CSS text-align values
+        const textAlignMap = {
+          start: 'left',
+          middle: 'center',
+          end: 'right',
+          justify: 'justify'
+        }
+
+        const textAlign = textAlignMap[value] || 'left'
+        textDiv.style.textAlign = textAlign
       }
-
-      const textAlign = textAlignMap[value] || 'left'
-      textDiv.style.textAlign = textAlign
-
-      // Store the anchor value as an attribute for consistency
-      el.setAttribute('text-anchor', value)
-
-      // Trigger change event
-      svgCanvas.call('changed', [el])
-    }
-  })
+    })
+  }
 }
 
 /**
