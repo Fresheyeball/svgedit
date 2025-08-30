@@ -974,7 +974,7 @@ const mouseUpEvent = (evt) => {
     setTimeout(() => {
       if (cAni) { cAni.remove() }
       element.setAttribute('opacity', curShape.opacity)
-      element.setAttribute('style', 'pointer-events:inherit')
+      element.style.pointerEvents = 'inherit'
       cleanupElement(element)
       if (svgCanvas.getCurrentMode() === 'path') {
         svgCanvas.pathActions.toEditMode(element)

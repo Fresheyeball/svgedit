@@ -108,7 +108,7 @@ const svgWhiteList_ = {
   semantics: [],
 
   // HTML Elements for use in a foreignObject
-  div: [],
+  div: ['style', 'xmlns'],
   p: [],
   li: [],
   pre: [],
@@ -208,19 +208,28 @@ export const sanitizeSvg = (node) => {
       }
 
       // For the style attribute, rewrite it in terms of XML presentational attributes
+      // Exception: preserve style attributes on HTML elements (like div) which need CSS styles
       if (attrName === 'style') {
-        const props = attr.value.split(';')
-        let p = props.length
-        while (p--) {
-          const [name, val] = props[p].split(':')
-          const styleAttrName = (name || '').trim()
-          const styleAttrVal = (val || '').trim()
-          // Now check that this attribute is supported
-          if (allowedAttrs.includes(styleAttrName)) {
-            node.setAttribute(styleAttrName, styleAttrVal)
+        const isHtmlElement = ['div', 'p', 'span', 'a', 'em', 'strong', 'b', 'i', 'u', 'li', 'ol', 'ul', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'pre'].includes(node.nodeName)
+
+        if (isHtmlElement) {
+          // For HTML elements, preserve the style attribute as-is since they need CSS styles
+          // The style attribute should already be in the allowedAttrs list for HTML elements
+        } else {
+          // For SVG elements, convert style attribute to individual XML attributes
+          const props = attr.value.split(';')
+          let p = props.length
+          while (p--) {
+            const [name, val] = props[p].split(':')
+            const styleAttrName = (name || '').trim()
+            const styleAttrVal = (val || '').trim()
+            // Now check that this attribute is supported
+            if (allowedAttrs.includes(styleAttrName)) {
+              node.setAttribute(styleAttrName, styleAttrVal)
+            }
           }
+          node.removeAttribute('style')
         }
-        node.removeAttribute('style')
       }
     }
 

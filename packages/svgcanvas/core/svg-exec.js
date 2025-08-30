@@ -363,6 +363,33 @@ const svgToString = (elem, indent) => {
 } // end svgToString()
 
 /**
+ * Restores inline styles for div elements in text foreignObject elements.
+ * This is needed because XML serialization/deserialization may not preserve
+ * the CSS object model for XHTML elements within SVG.
+ * @param {Element} svgContent - The SVG content element to process
+ */
+const restoreTextDivStyles = (svgContent) => {
+  if (!svgContent) return
+
+  const textForeignObjects = svgContent.querySelectorAll('foreignObject[se\\:type="text"]')
+
+  textForeignObjects.forEach(foreignObject => {
+    const textDiv = foreignObject.querySelector('div')
+    if (!textDiv) return
+
+    // The style attribute should contain the CSS text, but the CSS object model
+    // might not be properly initialized. Force refresh of the styles by
+    // re-applying the cssText from the style attribute
+    const styleAttr = textDiv.getAttribute('style')
+    if (styleAttr) {
+      // Clear and reapply the styles to ensure CSS object model is properly initialized
+      textDiv.style.cssText = ''
+      textDiv.style.cssText = styleAttr
+    }
+  })
+}
+
+/**
  * This function sets the current drawing as the input SVG XML.
  * @function module:svgcanvas.SvgCanvas#setSvgString
  * @param {string} xmlString - The SVG as XML text.
@@ -416,8 +443,10 @@ const setSvgString = (xmlString, preventUndo) => {
     svgCanvas.getSvgRoot().append(svgCanvas.getSvgContent())
     const content = svgCanvas.getSvgContent()
 
-    // Note: With the refactored approach, styling information is now stored
-    // directly in div style attributes, so no additional restoration is needed
+    // Restore div styles for text foreignObject elements after SVG loading
+    // This ensures that inline styles on XHTML div elements are properly restored
+    // after XML serialization/deserialization which may not preserve the CSS object model
+    restoreTextDivStyles(content)
 
     svgCanvas.current_drawing_ = new draw.Drawing(
       svgCanvas.getSvgContent(),
