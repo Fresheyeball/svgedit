@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual Test - Comprehensive Text Styling Persistence</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+            background: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin: 20px 0;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .step {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .test-item {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success {
+            background: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .warning {
+            background: #fff3cd;
+            border-color: #ffeaa7;
+            color: #856404;
+        }
+        .controls {
+            background: #343a40;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+        }
+        iframe {
+            width: 100%;
+            height: 600px;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+        }
+        .test-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .control-name {
+            font-weight: bold;
+            color: #2196f3;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🧪 Manual Test: Comprehensive Text Styling Persistence</h1>
+        <p>Test ALL text styling controls to ensure they persist after browser refresh</p>
+    </div>
+
+    <div class="test-container">
+        <h2>📋 Test Procedure</h2>
+        
+        <div class="step">
+            <h3>Step 1: Open SVGEdit</h3>
+            <p><strong>Action:</strong> Open SVGEdit in the iframe below (or <a href="http://localhost:8001/src/editor/index.html" target="_blank">in a new tab</a>)</p>
+            <iframe src="http://localhost:8001/src/editor/index.html"></iframe>
+        </div>
+
+        <div class="step">
+            <h3>Step 2: Create Text Element</h3>
+            <div class="controls">
+                1. Click the Text tool (T) or press T<br>
+                2. Click on the canvas to create text<br>
+                3. Type: "Comprehensive Style Test"
+            </div>
+        </div>
+
+        <div class="step">
+            <h3>Step 3: Apply ALL Styling Controls</h3>
+            <p>Apply each of these styling options systematically:</p>
+            
+            <div class="test-list">
+                <div class="test-item">
+                    <span class="control-name">Bold:</span> Click #tool_bold or press B
+                </div>
+                <div class="test-item">
+                    <span class="control-name">Italic:</span> Click #tool_italic or press I
+                </div>
+                <div class="test-item">
+                    <span class="control-name">Text Align:</span> Click #tool_text_anchor → Select "Left"
+                </div>
+                <div class="test-item">
+                    <span class="control-name">Underline:</span> Click #tool_text_decoration_underline
+                </div>
+                <div class="test-item">
+                    <span class="control-name">Line-through:</span> Click #tool_text_decoration_linethrough
+                </div>
+                <div class="test-item">
+                    <span class="control-name">Overline:</span> Click #tool_text_decoration_overline
+                </div>
+                <div class="test-item">
+                    <span class="control-name">Font Family:</span> Change #tool_font_family to "Times"
+                </div>
+                <div class="test-item">
+                    <span class="control-name">Font Size:</span> Change #font_size to "32"
+                </div>
+                <div class="test-item">
+                    <span class="control-name">Text Color:</span> Click #fill_color → Select red
+                </div>
+                <div class="test-item">
+                    <span class="control-name">Letter Spacing:</span> Set #tool_letter_spacing to "2"
+                </div>
+                <div class="test-item">
+                    <span class="control-name">Word Spacing:</span> Set #tool_word_spacing to "5"
+                </div>
+            </div>
+        </div>
+
+        <div class="step">
+            <h3>Step 4: Verify Immediate Application</h3>
+            <div class="controls">
+                Check that the text visually shows ALL applied styles:<br>
+                ✅ Text should be bold, italic, left-aligned<br>
+                ✅ Text should have underline, line-through, and overline<br>
+                ✅ Text should be in Times font, 32px, red color<br>
+                ✅ Text should have increased letter and word spacing
+            </div>
+        </div>
+
+        <div class="step warning">
+            <h3>Step 5: 🔄 CRITICAL TEST - Browser Refresh</h3>
+            <div class="controls">
+                <strong>Press F5 or Ctrl+R to refresh the browser</strong><br><br>
+                This is the critical test that was failing before the fix!<br>
+                The text should maintain ALL its styling after refresh.
+            </div>
+        </div>
+
+        <div class="step success">
+            <h3>Step 6: ✅ Verify Persistence</h3>
+            <p>After refresh, confirm that ALL styles are preserved:</p>
+            
+            <div class="test-list">
+                <div class="test-item">
+                    ✅ Bold still applied
+                </div>
+                <div class="test-item">
+                    ✅ Italic still applied
+                </div>
+                <div class="test-item">
+                    ✅ Left alignment preserved
+                </div>
+                <div class="test-item">
+                    ✅ Underline preserved
+                </div>
+                <div class="test-item">
+                    ✅ Line-through preserved
+                </div>
+                <div class="test-item">
+                    ✅ Overline preserved
+                </div>
+                <div class="test-item">
+                    ✅ Times font preserved
+                </div>
+                <div class="test-item">
+                    ✅ 32px size preserved
+                </div>
+                <div class="test-item">
+                    ✅ Red color preserved
+                </div>
+                <div class="test-item">
+                    ✅ Letter spacing preserved
+                </div>
+                <div class="test-item">
+                    ✅ Word spacing preserved
+                </div>
+            </div>
+        </div>
+
+        <div class="step">
+            <h3>Step 7: Test TopPanel Synchronization</h3>
+            <div class="controls">
+                1. Click on the text element after refresh<br>
+                2. Verify that ALL TopPanel controls show the correct state:<br>
+                   - Bold button should be pressed<br>
+                   - Italic button should be pressed<br>
+                   - Text anchor should show "start"<br>
+                   - Decoration buttons should be pressed<br>
+                   - Font family should show "Times"<br>
+                   - Font size should show "32"
+            </div>
+        </div>
+
+        <div class="step">
+            <h3>Step 8: Test Additional Scenarios</h3>
+            <div class="test-item">
+                <strong>Multiple Elements:</strong> Create several text elements with different style combinations
+            </div>
+            <div class="test-item">
+                <strong>Style Changes:</strong> Change styles after refresh to ensure they still work
+            </div>
+            <div class="test-item">
+                <strong>Save/Load:</strong> Use File → Export to test getSvgString(), then reload
+            </div>
+        </div>
+    </div>
+
+    <div class="test-container">
+        <h2>🎯 Expected Results</h2>
+        
+        <div class="step success">
+            <h3>✅ Success Criteria</h3>
+            <p>If the fix is working correctly:</p>
+            <ul>
+                <li><strong>ALL styling controls persist through browser refresh</strong></li>
+                <li><strong>No "pointer-events:inherit" overwriting</strong></li>
+                <li><strong>Styles remain on div elements (not foreignObject attributes)</strong></li>
+                <li><strong>TopPanel controls sync correctly after restoration</strong></li>
+                <li><strong>Multiple save/load cycles work correctly</strong></li>
+            </ul>
+        </div>
+
+        <div class="step warning">
+            <h3>🚨 Failure Indicators</h3>
+            <p>If you see these issues, the fix needs more work:</p>
+            <ul>
+                <li>Text alignment reverts to center after refresh</li>
+                <li>Any styling is lost after refresh</li>
+                <li>TopPanel controls don't reflect actual text state</li>
+                <li>Text has only "pointer-events:inherit" as style</li>
+                <li>Console errors about CSS or DOM manipulation</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-container">
+        <h2>🔧 Technical Validation</h2>
+        <div class="controls">
+            <strong>Developer Console Inspection:</strong><br><br>
+            1. Right-click the text → Inspect Element<br>
+            2. Verify the div element has comprehensive style attribute:<br>
+            <code>style="font-weight: bold; font-style: italic; text-align: left; text-decoration: underline line-through overline; font-family: Times; font-size: 32px; color: red; letter-spacing: 2px; word-spacing: 5px;"</code><br><br>
+            3. Verify the foreignObject has NO styling attributes<br>
+            4. Check that pointer-events is set using style.pointerEvents, not setAttribute('style', ...)
+        </div>
+    </div>
+
+    <script>
+        console.log('Manual test page loaded');
+        console.log('SVGEdit should be available at: http://localhost:8001/src/editor/index.html');
+        
+        // Add timestamp
+        const timestamp = new Date().toLocaleString();
+        document.title += ' - ' + timestamp;
+    </script>
+</body>
+</html>
