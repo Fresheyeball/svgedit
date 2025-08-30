@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test XML Serialization of ForeignObject Styles</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        .success { background: #e6ffe6; }
+        .error { background: #ffe6e6; }
+        pre { background: #f5f5f5; padding: 10px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>Testing XML Serialization of ForeignObject with XHTML Div Styles</h1>
+    
+    <div class="test">
+        <h3>Test: Does XML parsing preserve inline styles on XHTML elements?</h3>
+        <div id="results"></div>
+    </div>
+    
+    <script>
+        function runTest() {
+            const results = document.getElementById('results');
+            let output = '';
+            
+            // Create SVG with foreignObject containing styled div
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            const foreignObject = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
+            foreignObject.setAttribute('se:type', 'text');
+            
+            // Create XHTML div with inline styles
+            const div = document.createElementNS('http://www.w3.org/1999/xhtml', 'div');
+            div.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
+            div.style.fontSize = '18px';
+            div.style.color = 'blue';
+            div.style.textAlign = 'left';
+            div.style.fontWeight = 'bold';
+            div.textContent = 'Test text';
+            
+            foreignObject.appendChild(div);
+            svg.appendChild(foreignObject);
+            
+            output += '<p><strong>Original div styles:</strong> ' + div.style.cssText + '</p>';
+            
+            // Serialize to XML string
+            const serializer = new XMLSerializer();
+            const xmlString = serializer.serializeToString(svg);
+            
+            output += '<p><strong>Serialized XML:</strong></p>';
+            output += '<pre>' + xmlString.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</pre>';
+            
+            // Parse back from XML string (simulating SVGEdit's process)
+            const parser = new DOMParser();
+            const parsedDoc = parser.parseFromString(xmlString, 'image/svg+xml');
+            const parsedSvg = parsedDoc.documentElement;
+            
+            // Check if parsing preserved the styles
+            const parsedFO = parsedSvg.querySelector('foreignObject[se\\\\:type="text"]');
+            const parsedDiv = parsedFO ? parsedFO.querySelector('div') : null;
+            
+            if (parsedDiv) {
+                const parsedStyles = parsedDiv.style.cssText;
+                output += '<p><strong>Parsed div styles:</strong> ' + (parsedStyles || 'NONE - STYLES LOST!') + '</p>';
+                
+                // Check individual style properties
+                output += '<p><strong>Individual style properties:</strong></p>';
+                output += '<ul>';
+                output += '<li>fontSize: "' + parsedDiv.style.fontSize + '"</li>';
+                output += '<li>color: "' + parsedDiv.style.color + '"</li>';
+                output += '<li>textAlign: "' + parsedDiv.style.textAlign + '"</li>';
+                output += '<li>fontWeight: "' + parsedDiv.style.fontWeight + '"</li>';
+                output += '</ul>';
+                
+                const stylesPreserved = parsedDiv.style.fontSize && parsedDiv.style.color && parsedDiv.style.textAlign;
+                
+                output += '<div class="' + (stylesPreserved ? 'success' : 'error') + '">';
+                output += '<strong>Result:</strong> ' + (stylesPreserved ? 'STYLES PRESERVED ✓' : 'STYLES LOST ✗');
+                output += '</div>';
+                
+            } else {
+                output += '<div class="error"><strong>ERROR:</strong> Could not find parsed div element!</div>';
+            }
+            
+            // Test adoptNode/importNode (what SVGEdit actually does)
+            output += '<hr><h4>Testing adoptNode/importNode (SVGEdit\'s actual process):</h4>';
+            
+            const adoptedSvg = document.adoptNode ? document.adoptNode(parsedSvg.cloneNode(true)) : document.importNode(parsedSvg, true);
+            const adoptedFO = adoptedSvg.querySelector('foreignObject[se\\\\:type="text"]');
+            const adoptedDiv = adoptedFO ? adoptedFO.querySelector('div') : null;
+            
+            if (adoptedDiv) {
+                const adoptedStyles = adoptedDiv.style.cssText;
+                output += '<p><strong>Adopted div styles:</strong> ' + (adoptedStyles || 'NONE - STYLES LOST DURING ADOPTION!') + '</p>';
+                
+                const adoptedStylesPreserved = adoptedDiv.style.fontSize && adoptedDiv.style.color && adoptedDiv.style.textAlign;
+                
+                output += '<div class="' + (adoptedStylesPreserved ? 'success' : 'error') + '">';
+                output += '<strong>Final Result:</strong> ' + (adoptedStylesPreserved ? 'STYLES SURVIVED FULL PROCESS ✓' : 'STYLES LOST IN ADOPTION ✗');
+                output += '</div>';
+                
+            } else {
+                output += '<div class="error"><strong>ERROR:</strong> Could not find adopted div element!</div>';
+            }
+            
+            results.innerHTML = output;
+        }
+        
+        // Run the test
+        runTest();
+    </script>
+</body>
+</html>

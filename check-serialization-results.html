@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Check Serialization Results</title>
+</head>
+<body>
+    <div id="output"></div>
+    <script>
+        // Simple test to check what happens to styles during XML serialization
+        
+        // Create SVG with foreignObject containing styled div
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        const foreignObject = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
+        foreignObject.setAttribute('se:type', 'text');
+        
+        // Create XHTML div with inline styles
+        const div = document.createElementNS('http://www.w3.org/1999/xhtml', 'div');
+        div.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
+        div.style.fontSize = '18px';
+        div.style.color = 'blue'; 
+        div.style.textAlign = 'left';
+        div.style.fontWeight = 'bold';
+        div.textContent = 'Test text';
+        
+        foreignObject.appendChild(div);
+        svg.appendChild(foreignObject);
+        
+        console.log('1. Original div styles:', div.style.cssText);
+        
+        // Serialize to XML string
+        const serializer = new XMLSerializer();
+        const xmlString = serializer.serializeToString(svg);
+        console.log('2. Serialized XML:', xmlString);
+        
+        // Parse back from XML string
+        const parser = new DOMParser();
+        const parsedDoc = parser.parseFromString(xmlString, 'image/svg+xml');
+        const parsedSvg = parsedDoc.documentElement;
+        
+        const parsedFO = parsedSvg.querySelector('foreignObject[se\\:type="text"]');
+        const parsedDiv = parsedFO ? parsedFO.querySelector('div') : null;
+        
+        if (parsedDiv) {
+            console.log('3. Parsed div styles:', parsedDiv.style.cssText);
+            console.log('4. Parsed fontSize:', parsedDiv.style.fontSize);
+            console.log('5. Parsed color:', parsedDiv.style.color);
+            console.log('6. Parsed textAlign:', parsedDiv.style.textAlign);
+        } else {
+            console.log('3. ERROR: No parsed div found');
+        }
+        
+        // Test adoption (SVGEdit's process)
+        const adopted = document.adoptNode ? document.adoptNode(parsedSvg.cloneNode(true)) : document.importNode(parsedSvg, true);
+        const adoptedDiv = adopted.querySelector('foreignObject div');
+        
+        if (adoptedDiv) {
+            console.log('7. Adopted div styles:', adoptedDiv.style.cssText);
+            console.log('8. Adopted fontSize:', adoptedDiv.style.fontSize);
+        } else {
+            console.log('7. ERROR: No adopted div found');
+        }
+        
+        document.getElementById('output').innerHTML = 'Check browser console for results';
+    </script>
+</body>
+</html>

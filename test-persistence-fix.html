@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Text Style Persistence Fix</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        .success { background: #e6ffe6; }
+        .error { background: #ffe6e6; }
+        button { margin: 5px; padding: 8px 15px; }
+    </style>
+</head>
+<body>
+    <h1>Test Text Style Persistence Fix</h1>
+    <p><strong>This page tests whether the text styling persistence fix works</strong></p>
+    
+    <div class="test-section">
+        <h3>Instructions:</h3>
+        <ol>
+            <li><a href="/src/editor/index.html" target="_blank">Open SVGEdit</a></li>
+            <li>Click the text tool and create some text</li>
+            <li>Use TopPanel controls to change text alignment (e.g., left align)</li>
+            <li>Note the visual alignment</li>
+            <li>Refresh the browser page</li>
+            <li>Check if the text alignment is preserved after refresh</li>
+        </ol>
+    </div>
+    
+    <div class="test-section">
+        <h3>Expected Behavior with Fix:</h3>
+        <ul>
+            <li>Text alignment changes should be immediately visible</li>
+            <li>Text alignment should persist after browser refresh</li>
+            <li>No need to interact with TopPanel after refresh to see correct alignment</li>
+        </ul>
+    </div>
+    
+    <div class="test-section">
+        <h3>Technical Details:</h3>
+        <p>The fix adds a <code>restoreTextDivStyles()</code> function that runs after SVG loading to ensure that XHTML div styles are properly restored after XML serialization/deserialization.</p>
+        <p>The function re-applies the CSS styles from the style attribute to ensure the CSS object model is properly initialized.</p>
+    </div>
+</body>
+</html>

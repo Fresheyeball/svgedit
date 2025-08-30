@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Sanitizer Fix for Div Style Attributes</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        .success { background: #e6ffe6; }
+        .error { background: #ffe6e6; }
+        pre { background: #f5f5f5; padding: 10px; overflow-x: auto; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <h1>Test Sanitizer Fix for Div Style Attributes</h1>
+    <p><strong>This page tests whether the SVG sanitizer now preserves style attributes on HTML div elements.</strong></p>
+    
+    <div class="test-section">
+        <h3>Test 1: Create SVG with styled div and sanitize it</h3>
+        <div id="test1-results"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Manual Test Instructions:</h3>
+        <ol>
+            <li><a href="/src/editor/index.html" target="_blank">Open SVGEdit</a></li>
+            <li>Accept storage if prompted (click "OK" on storage dialog)</li>
+            <li>Create text and change alignment using TopPanel</li>
+            <li>Refresh the page</li>
+            <li>Check if alignment persists</li>
+        </ol>
+    </div>
+    
+    <script type="module">
+        // Import the sanitize function to test it directly
+        
+        function test1() {
+            const results = document.getElementById('test1-results');
+            let output = '';
+            
+            // Create a test SVG with foreignObject containing a styled div
+            const svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="200">
+              <foreignObject x="50" y="50" width="300" height="50" se:type="text">
+                <div xmlns="http://www.w3.org/1999/xhtml" style="font-size: 18px; color: blue; text-align: left; font-weight: bold;">
+                  Test styled div element
+                </div>
+              </foreignObject>
+            </svg>`;
+            
+            output += '<h4>Original SVG with styled div:</h4>';
+            output += '<pre>' + svgString.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</pre>';
+            
+            // Parse the SVG
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(svgString, 'image/svg+xml');
+            const svg = doc.documentElement;
+            
+            // Check div before sanitization
+            const divBefore = svg.querySelector('div');
+            const stylesBefore = divBefore ? divBefore.getAttribute('style') : 'NOT FOUND';
+            output += '<p><strong>Div style before sanitization:</strong> ' + stylesBefore + '</p>';
+            
+            // Note: We can't directly call the sanitizer from here since it's not exported,
+            // but we can check if the styles would survive by simulating what happens in SVGEdit
+            
+            // Simulate the setSvgString process
+            const serializer = new XMLSerializer();
+            const serialized = serializer.serializeToString(svg);
+            
+            output += '<h4>Serialized SVG:</h4>';
+            output += '<pre>' + serialized.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</pre>';
+            
+            // Parse it back (this is where sanitization would normally happen in SVGEdit)
+            const reparsed = parser.parseFromString(serialized, 'image/svg+xml');
+            const reparsedDiv = reparsed.querySelector('div');
+            const stylesAfter = reparsedDiv ? reparsedDiv.getAttribute('style') : 'NOT FOUND';
+            
+            output += '<p><strong>Div style after re-parsing:</strong> ' + stylesAfter + '</p>';
+            
+            const success = stylesAfter && stylesAfter.includes('text-align') && stylesAfter.includes('color');
+            
+            output += '<div class="' + (success ? 'success' : 'error') + '">';
+            output += '<strong>Result:</strong> ' + (success ? 'STYLES PRESERVED ✓' : 'STYLES LOST ✗');
+            output += '</div>';
+            
+            output += '<p><em>Note: The real test is in SVGEdit where the sanitizer is applied. This test shows the serialization/parsing process.</em></p>';
+            
+            results.innerHTML = output;
+        }
+        
+        // Run the test
+        test1();
+    </script>
+</body>
+</html>

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Text Alignment Persistence</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .instructions { background: #f0f8ff; padding: 15px; border: 1px solid #0066cc; margin: 20px 0; }
+        .step { margin: 10px 0; }
+        .success { background: #e6ffe6; padding: 10px; border: 1px solid #00cc00; }
+        .error { background: #ffe6e6; padding: 10px; border: 1px solid #cc0000; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Test Text Alignment Persistence - FIXED VERSION</h1>
+    
+    <div class="instructions">
+        <h3>🚀 Quick Test Instructions:</h3>
+        <div class="step"><strong>1.</strong> <a href="/src/editor/index.html" target="_blank"><strong>Open SVGEdit in new tab</strong></a></div>
+        <div class="step"><strong>2.</strong> If you see a storage dialog, click <strong>"OK"</strong> to enable auto-save</div>
+        <div class="step"><strong>3.</strong> Click the <strong>Text tool (T)</strong></div>
+        <div class="step"><strong>4.</strong> Click on the canvas to create text</div>
+        <div class="step"><strong>5.</strong> Type some text and press Enter</div>
+        <div class="step"><strong>6.</strong> In the top panel, click the <strong>text alignment dropdown</strong> and select <strong>"Left align"</strong></div>
+        <div class="step"><strong>7.</strong> Verify the text visually aligns to the left</div>
+        <div class="step"><strong>8.</strong> <strong>Refresh the browser page (F5)</strong></div>
+        <div class="step"><strong>9.</strong> ✅ <strong>The text should remain left-aligned after refresh!</strong></div>
+    </div>
+    
+    <div class="success">
+        <h3>✅ Expected Result (with the fix):</h3>
+        <p>Text alignment should persist after browser refresh without requiring any interaction with TopPanel controls.</p>
+    </div>
+    
+    <div class="error">
+        <h3>❌ Previous Behavior (before the fix):</h3>
+        <p>Text would lose its alignment on refresh and require clicking TopPanel controls to restore it.</p>
+    </div>
+    
+    <div class="instructions">
+        <h3>🔍 Technical Details:</h3>
+        <p><strong>The fix addresses two issues:</strong></p>
+        <ol>
+            <li><strong>Sanitizer Fix:</strong> Modified the SVG sanitizer to preserve <code>style</code> attributes on HTML elements (like div), while still converting them to XML attributes for SVG elements.</li>
+            <li><strong>Restoration Fix:</strong> Added <code>restoreTextDivStyles()</code> function that runs after SVG loading to ensure CSS object model is properly initialized from style attributes.</li>
+        </ol>
+    </div>
+</body>
+</html>

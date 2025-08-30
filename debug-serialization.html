@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug SVG Serialization</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .result { margin: 10px 0; padding: 10px; border: 1px solid #ccc; background: #f9f9f9; }
+        pre { background: #eee; padding: 10px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>Debug SVG Serialization with ForeignObject</h1>
+    
+    <div id="results"></div>
+    
+    <script>
+        function runSerializationTest() {
+            const results = document.getElementById('results');
+            let output = '';
+            
+            // Create a test SVG with foreignObject containing styled div
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('width', '400');
+            svg.setAttribute('height', '200');
+            
+            const foreignObject = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
+            foreignObject.setAttribute('x', '50');
+            foreignObject.setAttribute('y', '50');
+            foreignObject.setAttribute('width', '300');
+            foreignObject.setAttribute('height', '50');
+            foreignObject.setAttribute('se:type', 'text');
+            
+            const div = document.createElementNS('http://www.w3.org/1999/xhtml', 'div');
+            div.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
+            div.style.cssText = 'font-size: 18px; color: blue; text-align: left; font-weight: bold;';
+            div.textContent = 'Test styled text';
+            
+            foreignObject.appendChild(div);
+            svg.appendChild(foreignObject);
+            
+            output += '<div class="result"><h3>1. Original SVG Structure:</h3>';
+            output += '<pre>' + svg.outerHTML.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</pre>';
+            output += '<p><strong>Div styles:</strong> ' + div.style.cssText + '</p>';
+            output += '</div>';
+            
+            // Serialize to string
+            const serializer = new XMLSerializer();
+            const svgString = serializer.serializeToString(svg);
+            
+            output += '<div class="result"><h3>2. Serialized SVG String:</h3>';
+            output += '<pre>' + svgString.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</pre>';
+            output += '</div>';
+            
+            // Parse back from string (simulating save/load)
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(svgString, 'image/svg+xml');
+            const loadedSvg = doc.documentElement;
+            
+            output += '<div class="result"><h3>3. Parsed Back from String:</h3>';
+            output += '<pre>' + loadedSvg.outerHTML.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</pre>';
+            
+            const loadedFO = loadedSvg.querySelector('foreignObject[se\\\\:type="text"]');
+            const loadedDiv = loadedFO ? loadedFO.querySelector('div') : null;
+            
+            if (loadedDiv) {
+                output += '<p><strong>Loaded div styles:</strong> ' + (loadedDiv.style.cssText || 'NONE!') + '</p>';
+                output += '<p><strong>Loaded div attributes:</strong> ' + Array.from(loadedDiv.attributes).map(attr => attr.name + '="' + attr.value + '"').join(', ') + '</p>';
+            } else {
+                output += '<p><strong>ERROR:</strong> Could not find loaded div!</p>';
+            }
+            output += '</div>';
+            
+            // Test adoptNode/importNode (what SVGEdit does)
+            const adoptedSvg = document.adoptNode ? document.adoptNode(loadedSvg.cloneNode(true)) : document.importNode(loadedSvg, true);
+            
+            output += '<div class="result"><h3>4. After adoptNode/importNode (SVGEdit process):</h3>';
+            output += '<pre>' + adoptedSvg.outerHTML.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</pre>';
+            
+            const adoptedFO = adoptedSvg.querySelector('foreignObject[se\\\\:type="text"]');
+            const adoptedDiv = adoptedFO ? adoptedFO.querySelector('div') : null;
+            
+            if (adoptedDiv) {
+                output += '<p><strong>Adopted div styles:</strong> ' + (adoptedDiv.style.cssText || 'NONE!') + '</p>';
+                output += '<p><strong>Adopted div attributes:</strong> ' + Array.from(adoptedDiv.attributes).map(attr => attr.name + '="' + attr.value + '"').join(', ') + '</p>';
+            } else {
+                output += '<p><strong>ERROR:</strong> Could not find adopted div!</p>';
+            }
+            output += '</div>';
+            
+            results.innerHTML = output;
+        }
+        
+        // Run the test
+        runSerializationTest();
+    </script>
+</body>
+</html>
