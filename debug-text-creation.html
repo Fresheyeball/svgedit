@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Text Creation</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .result { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+    </style>
+</head>
+<body>
+    <h1>Debug Text Creation</h1>
+    
+    <div id="results"></div>
+    
+    <script>
+        // Navigate to the editor to see if it loads
+        document.getElementById('results').innerHTML = `
+            <div class="result">
+                <h3>Test 1: Can we access the editor page?</h3>
+                <p><a href="/src/editor/index.html" target="_blank">Open SVG Editor</a></p>
+            </div>
+            
+            <div class="result">
+                <h3>Test 2: Manual Test Instructions</h3>
+                <ol>
+                    <li>Open the editor link above</li>
+                    <li>Click the Text tool (T icon)</li>
+                    <li>Click anywhere on the canvas</li>
+                    <li>Check if text element appears</li>
+                    <li>Open browser dev tools and inspect the SVG</li>
+                    <li>Look for foreignObject elements with se:type="text"</li>
+                </ol>
+            </div>
+        `;
+    </script>
+</body>
+</html>

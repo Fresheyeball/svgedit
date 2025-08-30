@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Text Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Test New Text Implementation</h1>
+    <div id="result"></div>
+    
+    <script type="module">
+        import svgEditor from './src/editor/Editor.js'
+        
+        // Create a container for the editor
+        const container = document.createElement('div')
+        container.style.width = '800px'
+        container.style.height = '600px'
+        container.style.border = '1px solid #ccc'
+        document.body.appendChild(container)
+        
+        // Initialize SVG editor
+        const editor = new svgEditor(container)
+        await editor.init()
+        
+        console.log('Editor initialized')
+        document.getElementById('result').innerHTML = 'Editor initialized successfully!'
+    </script>
+</body>
+</html>

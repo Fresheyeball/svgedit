@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Minimal Text Alignment Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test { margin: 20px 0; padding: 10px; border: 1px solid #ccc; }
+        .good { background: #e6ffe6; }
+        .bad { background: #ffe6e6; }
+    </style>
+</head>
+<body>
+    <h1>Minimal Text Alignment Test</h1>
+    <p><a href="http://localhost:8011/src/editor/index.html" target="_blank">Open SVGEdit</a></p>
+    
+    <div class="test">
+        <h3>Expected Behavior:</h3>
+        <p>1. Open SVGEdit</p>
+        <p>2. Create text with left alignment (click text tool, type text, set alignment to "Left")</p>
+        <p>3. View SVG source - should see div with <code>text-align: left</code> in style attribute</p>
+        <p>4. Clear canvas and reload that SVG source</p>
+        <p>5. Text should appear left-aligned immediately (this is the bug - it doesn't)</p>
+    </div>
+    
+    <div class="test">
+        <h3>Debug Steps:</h3>
+        <p>6. Open browser console and look for error messages starting with "🔧 CRITICAL:"</p>
+        <p>7. These messages should show if our restoration code is running</p>
+        <p>8. Look for "Found imported foreignObjects:" to see if elements are being found</p>
+    </div>
+    
+    <div class="test">
+        <h3>What should happen with our fix:</h3>
+        <p>- Console should show: "🔧 CRITICAL: SVG IMPORT TEXT ALIGNMENT RESTORATION STARTED"</p>
+        <p>- Console should show: "🔍 Found imported foreignObjects: 1" (or more)</p>
+        <p>- Console should show: "🎯 APPLYING: start -> left"</p>
+        <p>- Console should show: "✅ ALIGNMENT SUCCESS - left"</p>
+        <p>- Text should be visually left-aligned immediately</p>
+    </div>
+    
+    <script>
+        console.log('Test page loaded. Open SVGEdit and follow the steps above.');
+        console.log('Our fix should show debug messages when SVG is loaded.');
+    </script>
+</body>
+</html>

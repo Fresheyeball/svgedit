@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fix Verification Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .step { margin: 20px 0; padding: 15px; border: 1px solid #ddd; background: #f9f9f9; }
+        .result { padding: 10px; margin: 10px 0; }
+        .success { background: #e6ffe6; }
+        .error { background: #ffe6e6; }
+        pre { background: #f0f0f0; padding: 10px; overflow: auto; }
+    </style>
+</head>
+<body>
+    <h1>Text Alignment Fix Verification</h1>
+    <p><strong>Instructions:</strong></p>
+    <ol>
+        <li>Open <a href="http://localhost:8013/src/editor/index.html" target="_blank">SVGEdit</a></li>
+        <li>Create text with left alignment (click text tool, type text, set alignment to "Left")</li>
+        <li>View SVG source (click Source button) - copy the source here:</li>
+    </ol>
+    
+    <div class="step">
+        <h3>Test SVG Source:</h3>
+        <textarea id="svgSource" rows="10" cols="80" placeholder="Paste your SVG source here..."></textarea>
+        <br><br>
+        <button onclick="testFix()">Test Fix</button>
+        <button onclick="clearTest()">Clear</button>
+    </div>
+    
+    <div class="step">
+        <h3>Original SVG (before fix):</h3>
+        <div id="original"></div>
+        <div id="originalResult" class="result"></div>
+    </div>
+    
+    <div class="step">
+        <h3>Fixed SVG (after applying synchronization):</h3>
+        <div id="fixed"></div>
+        <div id="fixedResult" class="result"></div>
+    </div>
+    
+    <script>
+        function testFix() {
+            const svgSource = document.getElementById('svgSource').value.trim();
+            if (!svgSource) {
+                alert('Please paste SVG source first');
+                return;
+            }
+            
+            // Clear previous results
+            document.getElementById('original').innerHTML = '';
+            document.getElementById('fixed').innerHTML = '';
+            
+            try {
+                // Test original
+                document.getElementById('original').innerHTML = svgSource;
+                setTimeout(() => {
+                    analyzeOriginal();
+                    testSynchronization();
+                }, 100);
+            } catch (e) {
+                document.getElementById('originalResult').innerHTML = 
+                    `<div class="error">Error parsing SVG: ${e.message}</div>`;
+            }
+        }
+        
+        function analyzeOriginal() {
+            const foreignObjects = document.querySelectorAll('#original foreignObject[se\\:type="text"]');
+            let results = [];
+            
+            foreignObjects.forEach((fo, index) => {
+                const textDiv = fo.querySelector('div');
+                if (textDiv) {
+                    const textAnchor = fo.getAttribute('text-anchor');
+                    const currentAlign = textDiv.style.textAlign;
+                    const computedAlign = getComputedStyle(textDiv).textAlign;
+                    
+                    results.push({
+                        index: index + 1,
+                        textAnchor,
+                        inlineStyle: currentAlign,
+                        computedStyle: computedAlign,
+                        expected: textAnchor === 'start' ? 'left' : 
+                                 textAnchor === 'middle' ? 'center' : 
+                                 textAnchor === 'end' ? 'right' : 'left'
+                    });
+                }
+            });
+            
+            let html = `<strong>Found ${results.length} text element(s):</strong><br>`;
+            results.forEach(r => {
+                const isCorrect = r.computedStyle === r.expected;
+                html += `<div class="${isCorrect ? 'success' : 'error'}">
+                    Element ${r.index}: text-anchor="${r.textAnchor}", 
+                    expected="${r.expected}", inline="${r.inlineStyle}", computed="${r.computedStyle}" 
+                    ${isCorrect ? '✓' : '✗'}
+                </div>`;
+            });
+            
+            document.getElementById('originalResult').innerHTML = html;
+        }
+        
+        function testSynchronization() {
+            const svgSource = document.getElementById('svgSource').value.trim();
+            document.getElementById('fixed').innerHTML = svgSource;
+            
+            setTimeout(() => {
+                // Apply the same synchronization logic that our fix uses
+                synchronizeTextStyles(document.getElementById('fixed'));
+                
+                setTimeout(() => {
+                    analyzeFixed();
+                }, 50);
+            }, 100);
+        }
+        
+        function synchronizeTextStyles(elem) {
+            if (elem.nodeType === 1) {
+                // Process foreignObject text elements
+                if (elem.localName === 'foreignObject' && elem.getAttribute('se:type') === 'text') {
+                    const textDiv = elem.querySelector('div');
+                    if (textDiv) {
+                        const textAnchor = elem.getAttribute('text-anchor');
+                        if (textAnchor) {
+                            const textAlignMap = {
+                                start: 'left',
+                                middle: 'center',
+                                end: 'right',
+                                justify: 'justify'
+                            };
+                            const expectedAlign = textAlignMap[textAnchor] || 'left';
+                            textDiv.style.textAlign = expectedAlign;
+                            console.log(`Applied fix: ${textAnchor} -> ${expectedAlign}`);
+                        }
+                    }
+                }
+                
+                // Recursively process child elements
+                for (let i = 0; i < elem.children.length; i++) {
+                    synchronizeTextStyles(elem.children[i]);
+                }
+            }
+        }
+        
+        function analyzeFixed() {
+            const foreignObjects = document.querySelectorAll('#fixed foreignObject[se\\:type="text"]');
+            let results = [];
+            
+            foreignObjects.forEach((fo, index) => {
+                const textDiv = fo.querySelector('div');
+                if (textDiv) {
+                    const textAnchor = fo.getAttribute('text-anchor');
+                    const currentAlign = textDiv.style.textAlign;
+                    const computedAlign = getComputedStyle(textDiv).textAlign;
+                    
+                    results.push({
+                        index: index + 1,
+                        textAnchor,
+                        inlineStyle: currentAlign,
+                        computedStyle: computedAlign,
+                        expected: textAnchor === 'start' ? 'left' : 
+                                 textAnchor === 'middle' ? 'center' : 
+                                 textAnchor === 'end' ? 'right' : 'left'
+                    });
+                }
+            });
+            
+            let html = `<strong>After applying fix:</strong><br>`;
+            results.forEach(r => {
+                const isCorrect = r.computedStyle === r.expected;
+                html += `<div class="${isCorrect ? 'success' : 'error'}">
+                    Element ${r.index}: text-anchor="${r.textAnchor}", 
+                    expected="${r.expected}", inline="${r.inlineStyle}", computed="${r.computedStyle}" 
+                    ${isCorrect ? '✓ FIXED!' : '✗ Still broken'}
+                </div>`;
+            });
+            
+            document.getElementById('fixedResult').innerHTML = html;
+        }
+        
+        function clearTest() {
+            document.getElementById('svgSource').value = '';
+            document.getElementById('original').innerHTML = '';
+            document.getElementById('fixed').innerHTML = '';
+            document.getElementById('originalResult').innerHTML = '';
+            document.getElementById('fixedResult').innerHTML = '';
+        }
+    </script>
+</body>
+</html>

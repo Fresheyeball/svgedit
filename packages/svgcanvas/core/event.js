@@ -1364,14 +1364,7 @@ const mouseDownEvent = (evt) => {
           height: initialHeight,
           id: svgCanvas.getNextId(),
           opacity,
-          'se:type': 'text', // Custom attribute to identify as text
-          'text-anchor': 'middle', // Default to center alignment
-          'font-size': fontSize, // Store font-size on foreignObject for persistence
-          'font-family': fontFamily, // Store font-family for persistence
-          fill, // Store text color for persistence
-          'font-weight': 'normal', // Default font-weight
-          'font-style': 'normal', // Default font-style
-          'text-decoration': 'none' // Default text-decoration
+          'se:type': 'text' // Custom attribute to identify as text only
         }
       })
 
@@ -1383,7 +1376,11 @@ const mouseDownEvent = (evt) => {
       div.style.fontFamily = fontFamily
       div.style.fontSize = fontSize + 'px'
       div.style.color = fill
+      // Set default text alignment - with new approach, center is default
       div.style.textAlign = 'center'
+      div.style.fontWeight = 'normal'
+      div.style.fontStyle = 'normal'
+      div.style.textDecoration = 'none'
       div.style.display = 'block'
       div.style.whiteSpace = 'pre-wrap'
       // div.style.wordWrap = 'break-word'

@@ -1,0 +1,15 @@
+
+> svgedit@7.3.8 prestart
+> echo svgedit is available at http://localhost:8000/src/editor/index.html
+
+svgedit is available at http://localhost:8000/src/editor/index.html
+
+> svgedit@7.3.8 start
+> web-dev-server --app-index src/editor/index.html --node-resolve
+
+Web Dev Server started...
+
+  Root dir: /home/isaac/_/svgedit
+  Local:    http://localhost:8017/
+  Network:  http://192.168.18.20:8017/
+

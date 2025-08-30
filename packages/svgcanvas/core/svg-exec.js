@@ -416,6 +416,9 @@ const setSvgString = (xmlString, preventUndo) => {
     svgCanvas.getSvgRoot().append(svgCanvas.getSvgContent())
     const content = svgCanvas.getSvgContent()
 
+    // Note: With the refactored approach, styling information is now stored
+    // directly in div style attributes, so no additional restoration is needed
+
     svgCanvas.current_drawing_ = new draw.Drawing(
       svgCanvas.getSvgContent(),
       svgCanvas.getIdPrefix()
@@ -555,63 +558,7 @@ const setSvgString = (xmlString, preventUndo) => {
       })
     })
 
-    // Restore all text attributes for foreignObject text elements
-    const foreignObjects = content.querySelectorAll('foreignObject[se\\:type="text"]')
-    Array.prototype.forEach.call(foreignObjects, fo => {
-      const textDiv = fo.querySelector('div')
-      if (textDiv) {
-        // Restore font-size
-        const fontSize = fo.getAttribute('font-size')
-        if (fontSize && (!textDiv.style.fontSize || textDiv.style.fontSize === 'inherit' || textDiv.style.fontSize === 'initial')) {
-          textDiv.style.fontSize = fontSize + 'px'
-        }
-
-        // Restore font-family
-        const fontFamily = fo.getAttribute('font-family')
-        if (fontFamily && (!textDiv.style.fontFamily || textDiv.style.fontFamily === 'inherit' || textDiv.style.fontFamily === 'initial')) {
-          textDiv.style.fontFamily = fontFamily
-        }
-
-        // Restore font-weight
-        const fontWeight = fo.getAttribute('font-weight')
-        if (fontWeight && (!textDiv.style.fontWeight || textDiv.style.fontWeight === 'inherit' || textDiv.style.fontWeight === 'initial')) {
-          textDiv.style.fontWeight = fontWeight
-        }
-
-        // Restore font-style
-        const fontStyle = fo.getAttribute('font-style')
-        if (fontStyle && (!textDiv.style.fontStyle || textDiv.style.fontStyle === 'inherit' || textDiv.style.fontStyle === 'initial')) {
-          textDiv.style.fontStyle = fontStyle
-        }
-
-        // Restore text color (fill)
-        const fill = fo.getAttribute('fill')
-        if (fill && (!textDiv.style.color || textDiv.style.color === 'inherit' || textDiv.style.color === 'initial')) {
-          textDiv.style.color = fill
-        }
-
-        // Restore text decoration
-        const textDecoration = fo.getAttribute('text-decoration')
-        if (textDecoration && textDecoration !== 'none' && (!textDiv.style.textDecoration || textDiv.style.textDecoration === 'inherit' || textDiv.style.textDecoration === 'initial')) {
-          textDiv.style.textDecoration = textDecoration
-        }
-
-        // Restore text alignment based on text-anchor
-        const textAnchor = fo.getAttribute('text-anchor')
-        if (textAnchor) {
-          const textAlignMap = {
-            start: 'left',
-            middle: 'center',
-            end: 'right',
-            justify: 'justify'
-          }
-          const expectedAlign = textAlignMap[textAnchor] || 'left'
-
-          // Always apply the alignment from the attribute, regardless of existing style
-          textDiv.style.textAlign = expectedAlign
-        }
-      }
-    })
+    // Text styling is now stored directly in div elements, no restoration needed
 
     // Percentage width/height, so let's base it on visible elements
     if (percs) {
@@ -653,64 +600,6 @@ const setSvgString = (xmlString, preventUndo) => {
 
     if (!preventUndo) svgCanvas.addCommandToHistory(batchCmd)
     svgCanvas.call('sourcechanged', [svgCanvas.getSvgContent()])
-
-    // Restore all text attributes for foreignObject text elements when loading SVG
-    const loadedForeignObjects = content.querySelectorAll('foreignObject[se\\:type="text"]')
-    Array.prototype.forEach.call(loadedForeignObjects, fo => {
-      const textDiv = fo.querySelector('div')
-      if (textDiv) {
-        // Restore font-size
-        const fontSize = fo.getAttribute('font-size')
-        if (fontSize && (!textDiv.style.fontSize || textDiv.style.fontSize === 'inherit' || textDiv.style.fontSize === 'initial')) {
-          textDiv.style.fontSize = fontSize + 'px'
-        }
-
-        // Restore font-family
-        const fontFamily = fo.getAttribute('font-family')
-        if (fontFamily && (!textDiv.style.fontFamily || textDiv.style.fontFamily === 'inherit' || textDiv.style.fontFamily === 'initial')) {
-          textDiv.style.fontFamily = fontFamily
-        }
-
-        // Restore font-weight
-        const fontWeight = fo.getAttribute('font-weight')
-        if (fontWeight && (!textDiv.style.fontWeight || textDiv.style.fontWeight === 'inherit' || textDiv.style.fontWeight === 'initial')) {
-          textDiv.style.fontWeight = fontWeight
-        }
-
-        // Restore font-style
-        const fontStyle = fo.getAttribute('font-style')
-        if (fontStyle && (!textDiv.style.fontStyle || textDiv.style.fontStyle === 'inherit' || textDiv.style.fontStyle === 'initial')) {
-          textDiv.style.fontStyle = fontStyle
-        }
-
-        // Restore text color (fill)
-        const fill = fo.getAttribute('fill')
-        if (fill && (!textDiv.style.color || textDiv.style.color === 'inherit' || textDiv.style.color === 'initial')) {
-          textDiv.style.color = fill
-        }
-
-        // Restore text decoration
-        const textDecoration = fo.getAttribute('text-decoration')
-        if (textDecoration && textDecoration !== 'none' && (!textDiv.style.textDecoration || textDiv.style.textDecoration === 'inherit' || textDiv.style.textDecoration === 'initial')) {
-          textDiv.style.textDecoration = textDecoration
-        }
-
-        // Restore text alignment based on text-anchor
-        const textAnchor = fo.getAttribute('text-anchor')
-        if (textAnchor) {
-          const textAlignMap = {
-            start: 'left',
-            middle: 'center',
-            end: 'right',
-            justify: 'justify'
-          }
-          const expectedAlign = textAlignMap[textAnchor] || 'left'
-
-          // Always apply the alignment from the attribute, regardless of existing style
-          textDiv.style.textAlign = expectedAlign
-        }
-      }
-    })
   } catch (e) {
     console.error(e)
     return false

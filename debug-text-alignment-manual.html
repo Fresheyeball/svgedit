@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Manual Text Alignment Debug</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .debug-section { margin: 20px 0; padding: 20px; border: 1px solid #ccc; }
+        iframe { width: 100%; height: 600px; border: 1px solid #333; }
+        pre { background: #f5f5f5; padding: 10px; overflow: auto; }
+        button { margin: 5px; padding: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Manual Text Alignment Debug</h1>
+    
+    <div class="debug-section">
+        <h3>Instructions</h3>
+        <ol>
+            <li>Open SVGEdit in the iframe below</li>
+            <li>Create text with left alignment (text tool → type text → set alignment to "Left")</li>
+            <li>Click "Get SVG Source" below to see what's saved</li>
+            <li>Click "Test Reload" to simulate loading that SVG</li>
+            <li>Check console for debug logs</li>
+        </ol>
+        
+        <button onclick="getSVGSource()">Get SVG Source</button>
+        <button onclick="testReload()">Test Reload</button>
+        <button onclick="inspectElements()">Inspect Elements</button>
+    </div>
+    
+    <div class="debug-section">
+        <h3>Console Output</h3>
+        <div id="console-output" style="background: black; color: green; padding: 10px; height: 200px; overflow: auto; font-family: monospace;"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h3>SVG Source</h3>
+        <pre id="svg-source">SVG source will appear here...</pre>
+    </div>
+    
+    <iframe src="http://localhost:8010/src/editor/index.html" id="svgedit-iframe"></iframe>
+    
+    <script>
+        let svgSource = '';
+        
+        function log(message) {
+            const output = document.getElementById('console-output');
+            const time = new Date().toLocaleTimeString();
+            output.innerHTML += `[${time}] ${message}\n`;
+            output.scrollTop = output.scrollHeight;
+            console.log(message);
+        }
+        
+        function getSVGSource() {
+            const iframe = document.getElementById('svgedit-iframe');
+            try {
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                const sourceTextarea = iframeDoc.getElementById('svg_source_textarea');
+                
+                if (sourceTextarea) {
+                    // Trigger the source view
+                    const sourceButton = iframeDoc.getElementById('tool_source');
+                    if (sourceButton) {
+                        sourceButton.click();
+                        
+                        setTimeout(() => {
+                            svgSource = sourceTextarea.value;
+                            document.getElementById('svg-source').textContent = svgSource;
+                            log('SVG Source captured: ' + svgSource.length + ' characters');
+                            
+                            // Close source view
+                            const cancelButton = iframeDoc.getElementById('tool_source_cancel');
+                            if (cancelButton) cancelButton.click();
+                        }, 500);
+                    }
+                } else {
+                    log('Could not access iframe content - try opening source manually');
+                }
+            } catch (e) {
+                log('CORS error accessing iframe: ' + e.message);
+                log('Please manually: Click tool_source, copy content, paste into browser console');
+            }
+        }
+        
+        function testReload() {
+            if (!svgSource) {
+                log('No SVG source captured yet. Click "Get SVG Source" first.');
+                return;
+            }
+            
+            const iframe = document.getElementById('svgedit-iframe');
+            try {
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                
+                // Clear canvas
+                const clearButton = iframeDoc.getElementById('tool_clear');
+                if (clearButton) {
+                    clearButton.click();
+                    setTimeout(() => {
+                        const okButton = iframeDoc.querySelector('.ok');
+                        if (okButton) okButton.click();
+                        
+                        setTimeout(() => {
+                            // Load SVG source
+                            const sourceButton = iframeDoc.getElementById('tool_source');
+                            if (sourceButton) {
+                                sourceButton.click();
+                                setTimeout(() => {
+                                    const textarea = iframeDoc.getElementById('svg_source_textarea');
+                                    if (textarea) {
+                                        textarea.value = svgSource;
+                                        const saveButton = iframeDoc.getElementById('tool_source_save');
+                                        if (saveButton) {
+                                            saveButton.click();
+                                            log('SVG reloaded - check console for debug logs');
+                                            setTimeout(() => inspectElements(), 1000);
+                                        }
+                                    }
+                                }, 500);
+                            }
+                        }, 500);
+                    }, 500);
+                }
+            } catch (e) {
+                log('Error during reload test: ' + e.message);
+            }
+        }
+        
+        function inspectElements() {
+            const iframe = document.getElementById('svgedit-iframe');
+            try {
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                const foreignObjects = iframeDoc.querySelectorAll('foreignObject[se\\:type="text"]');
+                
+                log(`Found ${foreignObjects.length} foreignObject text elements:`);
+                
+                foreignObjects.forEach((fo, index) => {
+                    const textAnchor = fo.getAttribute('text-anchor');
+                    const textDiv = fo.querySelector('div');
+                    
+                    if (textDiv) {
+                        const inlineAlign = textDiv.style.textAlign;
+                        const computedAlign = getComputedStyle(textDiv).textAlign;
+                        const styleAttr = textDiv.getAttribute('style');
+                        
+                        log(`Element ${index + 1}:`);
+                        log(`  text-anchor: "${textAnchor}"`);
+                        log(`  div.style.textAlign: "${inlineAlign}"`);
+                        log(`  computed textAlign: "${computedAlign}"`);
+                        log(`  div style attribute: "${styleAttr}"`);
+                        log(`  div innerHTML: "${textDiv.innerHTML}"`);
+                        log('---');
+                    } else {
+                        log(`Element ${index + 1}: no div found in foreignObject`);
+                    }
+                });
+                
+            } catch (e) {
+                log('Error inspecting elements: ' + e.message);
+            }
+        }
+        
+        // Set up console monitoring
+        window.addEventListener('load', function() {
+            log('Debug page loaded. Open browser console to see SVGEdit logs.');
+        });
+    </script>
+</body>
+</html>

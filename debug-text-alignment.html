@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Text Alignment Issue</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        iframe { border: 1px solid #ccc; width: 100%; height: 600px; }
+        .instructions { background: #f0f0f0; padding: 10px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>Debug Text Alignment Save Issue</h1>
+    
+    <div class="instructions">
+        <h3>Steps to reproduce:</h3>
+        <ol>
+            <li>Click the "T" (text) tool in SVGEdit below</li>
+            <li>Click on the canvas to create a text element</li>
+            <li>Type some text</li>
+            <li>Select the text element</li>
+            <li>Try to change the text alignment using the alignment dropdown</li>
+            <li>Watch for any "Changes you made cannot be saved" modals or errors</li>
+        </ol>
+    </div>
+    
+    <iframe src="http://localhost:8000/src/editor/index.html"></iframe>
+    
+    <script>
+        // Monitor for beforeunload events from the iframe
+        window.addEventListener('beforeunload', function(e) {
+            console.log('Parent page beforeunload triggered:', e);
+        });
+        
+        // Try to access iframe and monitor its events if possible
+        window.addEventListener('load', function() {
+            try {
+                const iframe = document.querySelector('iframe');
+                iframe.addEventListener('load', function() {
+                    try {
+                        const iframeWindow = iframe.contentWindow;
+                        if (iframeWindow) {
+                            iframeWindow.addEventListener('beforeunload', function(e) {
+                                console.log('Iframe beforeunload triggered:', e);
+                                console.log('Return value:', e.returnValue);
+                            });
+                        }
+                    } catch (e) {
+                        console.log('Cannot access iframe content (likely CORS):', e);
+                    }
+                });
+            } catch (e) {
+                console.log('Error setting up iframe monitoring:', e);
+            }
+        });
+    </script>
+</body>
+</html>

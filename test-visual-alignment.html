@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Visual Text Alignment</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-container { margin: 20px 0; padding: 20px; background: #f5f5f5; border-radius: 5px; }
+        .result { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .pass { background: #d4edda; color: #155724; }
+        .fail { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        svg { border: 1px solid #ccc; background: white; }
+        .test-case { margin: 15px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Visual Text Alignment Test</h1>
+    
+    <div class="test-container">
+        <h3>Test: Text Alignment Restoration After SVG Parse</h3>
+        <p>This test simulates what happens when SVGEdit loads an SVG document with saved text alignment.</p>
+        
+        <div id="results"></div>
+    </div>
+    
+    <div class="test-case">
+        <h4>Test Case 1: Left-aligned text (text-anchor="start")</h4>
+        <div id="test1"></div>
+    </div>
+    
+    <div class="test-case">
+        <h4>Test Case 2: Center-aligned text (text-anchor="middle")</h4>
+        <div id="test2"></div>
+    </div>
+    
+    <div class="test-case">
+        <h4>Test Case 3: Right-aligned text (text-anchor="end")</h4>
+        <div id="test3"></div>
+    </div>
+    
+    <script>
+        const resultsDiv = document.getElementById('results');
+        
+        function addResult(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.textContent = message;
+            resultsDiv.appendChild(div);
+        }
+        
+        // Test SVGs with different alignments - these simulate what gets saved/loaded
+        const testSvgs = [
+            {
+                name: 'Left Aligned',
+                anchor: 'start',
+                expectedAlign: 'left',
+                svg: `<svg width="300" height="80" viewBox="0 0 300 80" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" xmlns:se="http://svg-edit.googlecode.com">
+                    <g class="layer">
+                        <title>Layer 1</title>
+                        <foreignObject x="10" y="10" width="280" height="40" se:type="text" text-anchor="start" font-size="16">
+                            <div xmlns="http://www.w3.org/1999/xhtml" style="width: 100%; height: 100%; font-size: 16px; display: block; white-space: pre-wrap; overflow-wrap: break-word; padding: 4px; box-sizing: border-box; cursor: text; min-height: 100%; outline: none; border: 1px solid #ccc;">This text should be LEFT aligned</div>
+                        </foreignObject>
+                    </g>
+                </svg>`,
+                containerId: 'test1'
+            },
+            {
+                name: 'Center Aligned',
+                anchor: 'middle',
+                expectedAlign: 'center',
+                svg: `<svg width="300" height="80" viewBox="0 0 300 80" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" xmlns:se="http://svg-edit.googlecode.com">
+                    <g class="layer">
+                        <title>Layer 1</title>
+                        <foreignObject x="10" y="10" width="280" height="40" se:type="text" text-anchor="middle" font-size="16">
+                            <div xmlns="http://www.w3.org/1999/xhtml" style="width: 100%; height: 100%; font-size: 16px; display: block; white-space: pre-wrap; overflow-wrap: break-word; padding: 4px; box-sizing: border-box; cursor: text; min-height: 100%; outline: none; border: 1px solid #ccc;">This text should be CENTER aligned</div>
+                        </foreignObject>
+                    </g>
+                </svg>`,
+                containerId: 'test2'
+            },
+            {
+                name: 'Right Aligned', 
+                anchor: 'end',
+                expectedAlign: 'right',
+                svg: `<svg width="300" height="80" viewBox="0 0 300 80" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" xmlns:se="http://svg-edit.googlecode.com">
+                    <g class="layer">
+                        <title>Layer 1</title>
+                        <foreignObject x="10" y="10" width="280" height="40" se:type="text" text-anchor="end" font-size="16">
+                            <div xmlns="http://www.w3.org/1999/xhtml" style="width: 100%; height: 100%; font-size: 16px; display: block; white-space: pre-wrap; overflow-wrap: break-word; padding: 4px; box-sizing: border-box; cursor: text; min-height: 100%; outline: none; border: 1px solid #ccc;">This text should be RIGHT aligned</div>
+                        </foreignObject>
+                    </g>
+                </svg>`,
+                containerId: 'test3'
+            }
+        ];
+        
+        // Function to simulate the restoration logic
+        function simulateTextAlignmentRestoration(svgElement) {
+            const foreignObjects = svgElement.querySelectorAll('foreignObject[se\\:type="text"]');
+            let restorationApplied = 0;
+            
+            foreignObjects.forEach(fo => {
+                const textDiv = fo.querySelector('div');
+                if (textDiv) {
+                    // This is the same logic from svg-exec.js
+                    const textAnchor = fo.getAttribute('text-anchor');
+                    if (textAnchor) {
+                        const textAlignMap = {
+                            start: 'left',
+                            middle: 'center',
+                            end: 'right',
+                            justify: 'justify'
+                        };
+                        const expectedAlign = textAlignMap[textAnchor] || 'left';
+                        
+                        // Always apply the alignment from the attribute
+                        textDiv.style.textAlign = expectedAlign;
+                        restorationApplied++;
+                    }
+                }
+            });
+            
+            return restorationApplied;
+        }
+        
+        // Run tests
+        testSvgs.forEach((testCase, index) => {
+            const container = document.getElementById(testCase.containerId);
+            
+            // Parse the SVG
+            const parser = new DOMParser();
+            const svgDoc = parser.parseFromString(testCase.svg, 'image/svg+xml');
+            const svgElement = svgDoc.documentElement;
+            
+            // Apply restoration logic
+            const restored = simulateTextAlignmentRestoration(svgElement);
+            
+            // Add to page
+            container.appendChild(svgElement);
+            
+            // Check the result
+            const foreignObject = svgElement.querySelector('foreignObject[se\\:type="text"]');
+            const textDiv = foreignObject.querySelector('div');
+            const actualAlign = textDiv.style.textAlign;
+            const textAnchorAttr = foreignObject.getAttribute('text-anchor');
+            
+            const success = actualAlign === testCase.expectedAlign;
+            
+            addResult(
+                `${testCase.name}: text-anchor="${textAnchorAttr}", expected text-align="${testCase.expectedAlign}", actual="${actualAlign}" - ${success ? 'PASS' : 'FAIL'}`,
+                success ? 'pass' : 'fail'
+            );
+        });
+        
+        addResult('Test completed - check the visual alignment of the text in each test case above', 'info');
+    </script>
+</body>
+</html>

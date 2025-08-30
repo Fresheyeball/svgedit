@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Saved SVG Structure</title>
+</head>
+<body>
+    <h1>SVG Structure Test</h1>
+    
+    <h3>Example SVG with Left-Aligned Text (what should be saved):</h3>
+    <div id="test1"></div>
+    
+    <h3>Load the above SVG and inspect the div element:</h3>
+    <div id="test2"></div>
+    
+    <script>
+        // This is what should be saved when we create left-aligned text
+        const svgWithLeftText = `<svg width="640" height="480" viewBox="0 0 640 480" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" xmlns:se="http://svg-edit.googlecode.com">
+            <g class="layer">
+                <title>Layer 1</title>
+                <foreignObject x="100" y="100" width="200" height="40" se:type="text" text-anchor="start" font-size="16">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="width: 100%; height: 100%; font-size: 16px; text-align: left; display: block; white-space: pre-wrap; overflow-wrap: break-word; padding: 4px; box-sizing: border-box; cursor: text; min-height: 100%; outline: none;">Left Aligned Text</div>
+                </foreignObject>
+            </g>
+        </svg>`;
+        
+        // Insert the SVG
+        document.getElementById('test1').innerHTML = svgWithLeftText;
+        
+        // Now simulate what happens when SVG is "loaded" - create elements without text-align style
+        const svgWithoutStyles = `<svg width="640" height="480" viewBox="0 0 640 480" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" xmlns:se="http://svg-edit.googlecode.com">
+            <g class="layer">
+                <title>Layer 1</title>
+                <foreignObject x="100" y="100" width="200" height="40" se:type="text" text-anchor="start" font-size="16">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="width: 100%; height: 100%; font-size: 16px; display: block; white-space: pre-wrap; overflow-wrap: break-word; padding: 4px; box-sizing: border-box; cursor: text; min-height: 100%; outline: none;">Text Without Alignment Style</div>
+                </foreignObject>
+            </g>
+        </svg>`;
+        
+        document.getElementById('test2').innerHTML = svgWithoutStyles;
+        
+        // Now test our restoration logic
+        setTimeout(() => {
+            console.log('=== Testing Text Alignment Restoration ===');
+            
+            const foreignObjects = document.querySelectorAll('foreignObject[se\\:type="text"]');
+            console.log('Found foreign objects:', foreignObjects.length);
+            
+            foreignObjects.forEach((fo, index) => {
+                const textDiv = fo.querySelector('div');
+                if (textDiv) {
+                    const textAnchor = fo.getAttribute('text-anchor');
+                    const currentAlign = textDiv.style.textAlign;
+                    
+                    console.log(`FO ${index + 1}: text-anchor="${textAnchor}", current textAlign="${currentAlign}"`);
+                    
+                    if (textAnchor) {
+                        const textAlignMap = {
+                            start: 'left',
+                            middle: 'center', 
+                            end: 'right',
+                            justify: 'justify'
+                        };
+                        const expectedAlign = textAlignMap[textAnchor] || 'left';
+                        
+                        // Apply fix
+                        textDiv.style.textAlign = expectedAlign;
+                        console.log(`APPLIED: ${textAnchor} -> ${expectedAlign}`);
+                        console.log(`Result: textAlign="${textDiv.style.textAlign}"`);
+                    }
+                }
+            });
+        }, 1000);
+    </script>
+</body>
+</html>

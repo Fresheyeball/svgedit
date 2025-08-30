@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Debug Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .step { margin: 20px 0; padding: 15px; border: 1px solid #ddd; background: #f9f9f9; }
+        pre { background: #f0f0f0; padding: 10px; overflow: auto; max-height: 200px; }
+        .debug { background: #ffffcc; padding: 10px; margin: 10px 0; }
+        .result { background: #e6ffe6; padding: 10px; margin: 10px 0; }
+        .error { background: #ffe6e6; padding: 10px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>Simple Text Alignment Debug Test</h1>
+    
+    <div class="step">
+        <h3>Step 1: Create SVG with Left-Aligned Text</h3>
+        <p>This simulates what SVGEdit creates when user sets text to left-aligned:</p>
+        <div id="original-svg"></div>
+        <div class="debug" id="debug-original"></div>
+    </div>
+    
+    <div class="step">
+        <h3>Step 2: Simulate "Saving" the SVG</h3>
+        <p>Get the SVG as a string (like what happens when SVGEdit saves):</p>
+        <pre id="saved-svg-content">Loading...</pre>
+    </div>
+    
+    <div class="step">
+        <h3>Step 3: Simulate "Loading" the SVG</h3>
+        <p>Parse the SVG string and recreate elements (like what happens when SVGEdit loads):</p>
+        <div id="loaded-svg"></div>
+        <div class="debug" id="debug-loaded"></div>
+    </div>
+    
+    <div class="step">
+        <h3>Step 4: Apply Our Fix</h3>
+        <p>Run the text alignment restoration code:</p>
+        <div id="fixed-svg"></div>
+        <div class="debug" id="debug-fixed"></div>
+    </div>
+    
+    <script>
+        // Step 1: Create original SVG with proper text alignment
+        const originalSvg = `
+        <svg width="400" height="200" viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg" xmlns:se="http://svg-edit.googlecode.com">
+            <g class="layer">
+                <foreignObject x="50" y="50" width="300" height="50" se:type="text" text-anchor="start" font-size="16">
+                    <div xmlns="http://www.w3.org/1999/xhtml" 
+                         style="width: 100%; height: 100%; font-size: 16px; text-align: left; 
+                                display: block; white-space: pre-wrap; padding: 4px; 
+                                box-sizing: border-box; border: 1px solid #ccc;">
+                        This text should be LEFT aligned
+                    </div>
+                </foreignObject>
+            </g>
+        </svg>`;
+        
+        document.getElementById('original-svg').innerHTML = originalSvg;
+        
+        // Debug original
+        setTimeout(() => {
+            const originalFO = document.querySelector('#original-svg foreignObject[se\\:type="text"]');
+            const originalDiv = originalFO ? originalFO.querySelector('div') : null;
+            
+            if (originalDiv) {
+                document.getElementById('debug-original').innerHTML = 
+                    `<strong>Original:</strong><br>
+                     text-anchor: "${originalFO.getAttribute('text-anchor')}"<br>
+                     div style.textAlign: "${originalDiv.style.textAlign}"<br>
+                     div computed textAlign: "${getComputedStyle(originalDiv).textAlign}"<br>
+                     style attribute: "${originalDiv.getAttribute('style')}"`;
+            }
+        }, 100);
+        
+        // Step 2: Simulate saving (get outer HTML like browser serialization)
+        setTimeout(() => {
+            const svgElement = document.querySelector('#original-svg svg');
+            const savedContent = svgElement ? svgElement.outerHTML : 'Error getting SVG';
+            document.getElementById('saved-svg-content').textContent = savedContent;
+            
+            // Step 3: Simulate loading (parse the string and create new elements)
+            setTimeout(() => {
+                // This simulates what happens when SVG is loaded from string
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(savedContent, 'image/svg+xml');
+                const loadedSvgElement = doc.documentElement.cloneNode(true);
+                
+                document.getElementById('loaded-svg').appendChild(loadedSvgElement);
+                
+                // Debug loaded
+                setTimeout(() => {
+                    const loadedFO = document.querySelector('#loaded-svg foreignObject[se\\:type="text"]');
+                    const loadedDiv = loadedFO ? loadedFO.querySelector('div') : null;
+                    
+                    if (loadedDiv) {
+                        const debugInfo = 
+                            `<strong>After Loading:</strong><br>
+                             text-anchor: "${loadedFO.getAttribute('text-anchor')}"<br>
+                             div style.textAlign: "${loadedDiv.style.textAlign}"<br>
+                             div computed textAlign: "${getComputedStyle(loadedDiv).textAlign}"<br>
+                             style attribute: "${loadedDiv.getAttribute('style')}"<br>
+                             <span class="${loadedDiv.style.textAlign === 'left' ? 'result' : 'error'}">
+                             ${loadedDiv.style.textAlign === 'left' ? '✓ Text alignment preserved!' : '✗ Text alignment LOST!'}
+                             </span>`;
+                        
+                        document.getElementById('debug-loaded').innerHTML = debugInfo;
+                        
+                        // Step 4: Apply our fix
+                        setTimeout(() => {
+                            const fixedSvgElement = loadedSvgElement.cloneNode(true);
+                            document.getElementById('fixed-svg').appendChild(fixedSvgElement);
+                            
+                            // Apply the fix
+                            const fixedFO = document.querySelector('#fixed-svg foreignObject[se\\:type="text"]');
+                            const fixedDiv = fixedFO ? fixedFO.querySelector('div') : null;
+                            
+                            if (fixedDiv && fixedFO) {
+                                const textAnchor = fixedFO.getAttribute('text-anchor');
+                                console.log('Applying fix: text-anchor =', textAnchor);
+                                
+                                if (textAnchor) {
+                                    const textAlignMap = {
+                                        start: 'left',
+                                        middle: 'center',
+                                        end: 'right',
+                                        justify: 'justify'
+                                    };
+                                    const expectedAlign = textAlignMap[textAnchor] || 'left';
+                                    
+                                    console.log('Setting textAlign to:', expectedAlign);
+                                    fixedDiv.style.textAlign = expectedAlign;
+                                    
+                                    setTimeout(() => {
+                                        const finalAlign = getComputedStyle(fixedDiv).textAlign;
+                                        console.log('Final computed align:', finalAlign);
+                                        
+                                        document.getElementById('debug-fixed').innerHTML = 
+                                            `<strong>After Fix:</strong><br>
+                                             text-anchor: "${fixedFO.getAttribute('text-anchor')}"<br>
+                                             div style.textAlign: "${fixedDiv.style.textAlign}"<br>
+                                             div computed textAlign: "${finalAlign}"<br>
+                                             style attribute: "${fixedDiv.getAttribute('style')}"<br>
+                                             <span class="${finalAlign === 'left' ? 'result' : 'error'}">
+                                             ${finalAlign === 'left' ? '✓ Fix successful!' : '✗ Fix failed!'}
+                                             </span>`;
+                                    }, 100);
+                                }
+                            }
+                        }, 200);
+                    }
+                }, 100);
+            }, 200);
+        }, 200);
+    </script>
+</body>
+</html>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Text Alignment</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-area { background: #f0f0f0; padding: 20px; margin: 20px 0; }
+        .result { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        iframe { width: 100%; height: 600px; border: 1px solid #ccc; }
+    </style>
+</head>
+<body>
+    <h1>Text Alignment Test</h1>
+    
+    <div class="test-area">
+        <h3>Manual Test Instructions:</h3>
+        <ol>
+            <li>Open SVGEdit in the iframe below</li>
+            <li>Click the Text tool (T icon)</li>
+            <li>Click on the canvas to create a text element</li>
+            <li>Type some text (e.g., "Test Text")</li>
+            <li>Make sure the text element is selected</li>
+            <li>Try changing the text alignment using the alignment dropdown</li>
+            <li><strong>Watch for any modals saying "Changes you made cannot be saved"</strong></li>
+        </ol>
+    </div>
+    
+    <div id="results"></div>
+    
+    <iframe src="http://localhost:8000/src/editor/index.html" title="SVGEdit"></iframe>
+    
+    <script>
+        const resultsDiv = document.getElementById('results');
+        
+        function logResult(message, isSuccess = true) {
+            const div = document.createElement('div');
+            div.className = `result ${isSuccess ? 'success' : 'error'}`;
+            div.textContent = new Date().toLocaleTimeString() + ': ' + message;
+            resultsDiv.appendChild(div);
+        }
+        
+        // Monitor for beforeunload events
+        window.addEventListener('beforeunload', function(e) {
+            console.log('Parent window beforeunload event triggered');
+            logResult('Parent page beforeunload triggered', false);
+        });
+        
+        // Try to monitor iframe events
+        window.addEventListener('load', function() {
+            const iframe = document.querySelector('iframe');
+            
+            iframe.addEventListener('load', function() {
+                logResult('SVGEdit iframe loaded successfully', true);
+                
+                try {
+                    const iframeWindow = iframe.contentWindow;
+                    if (iframeWindow) {
+                        // Monitor for beforeunload in the iframe
+                        iframeWindow.addEventListener('beforeunload', function(e) {
+                            console.log('Iframe beforeunload event triggered:', e);
+                            logResult('SVGEdit beforeunload triggered: ' + e.returnValue, false);
+                        });
+                        
+                        // Monitor for any errors in the iframe
+                        iframeWindow.addEventListener('error', function(e) {
+                            console.log('Iframe error:', e);
+                            logResult('SVGEdit error: ' + e.message, false);
+                        });
+                        
+                        logResult('Successfully set up iframe monitoring', true);
+                    }
+                } catch (e) {
+                    console.log('Cannot access iframe content (CORS):', e);
+                    logResult('Cannot monitor iframe events due to CORS policy', false);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

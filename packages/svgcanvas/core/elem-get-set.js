@@ -14,6 +14,7 @@ import {
   convertToNum
 } from './units.js'
 import { getParents } from '../common/util.js'
+import * as textUtils from './text-style-utils.js'
 
 let svgCanvas = null
 
@@ -666,13 +667,11 @@ const setBoldMethod = (b) => {
       // Handle regular text elements
       svgCanvas.changeSelectedAttribute('font-weight', b ? 'bold' : 'normal', [el])
     } else if (isTextForeignObject(el)) {
-      // Handle foreignObject text elements
+      // Handle foreignObject text elements - store styling in div only
       const textDiv = getTextDiv(el)
       if (textDiv) {
-        textDiv.style.fontWeight = b ? 'bold' : 'normal'
+        textUtils.setFontWeightOnDiv(textDiv, b ? 'bold' : 'normal')
       }
-      // Also store font-weight on foreignObject for persistence
-      svgCanvas.changeSelectedAttribute('font-weight', b ? 'bold' : 'normal', [el])
     }
   })
 
@@ -849,13 +848,11 @@ const setItalicMethod = (i) => {
       // Handle regular text elements
       svgCanvas.changeSelectedAttribute('font-style', i ? 'italic' : 'normal', [el])
     } else if (isTextForeignObject(el)) {
-      // Handle foreignObject text elements
+      // Handle foreignObject text elements - store styling in div only
       const textDiv = getTextDiv(el)
       if (textDiv) {
-        textDiv.style.fontStyle = i ? 'italic' : 'normal'
+        textUtils.setFontStyleOnDiv(textDiv, i ? 'italic' : 'normal')
       }
-      // Also store font-style on foreignObject for persistence
-      svgCanvas.changeSelectedAttribute('font-style', i ? 'italic' : 'normal', [el])
     }
   })
 
@@ -874,7 +871,7 @@ const setItalicMethod = (i) => {
 
 /**
  * @function module:svgcanvas.SvgCanvas#setTextAnchorMethod Set the new text anchor
- * @param {string} value - The text anchor value (start, middle or end)
+ * @param {string} value - The text anchor value (start, middle, end, or justify)
  * @returns {void}
  */
 const setTextAnchorMethod = (value) => {
@@ -887,27 +884,15 @@ const setTextAnchorMethod = (value) => {
   const svgTextAnchorValue = value === 'justify' ? 'start' : value
   svgCanvas.changeSelectedAttribute('text-anchor', svgTextAnchorValue, regularTextElements)
 
-  // Handle foreignObject text elements
+  // Handle foreignObject text elements - work directly with div styles
   const foreignObjectTextElements = textElements.filter(el => isTextForeignObject(el))
 
-  // Use changeSelectedAttribute for foreignObject text elements too
   if (foreignObjectTextElements.length > 0) {
-    svgCanvas.changeSelectedAttribute('text-anchor', value, foreignObjectTextElements)
-
-    // Also update the CSS styles for each element
     foreignObjectTextElements.forEach(el => {
       const textDiv = el.querySelector('div')
       if (textDiv) {
-        // Map SVG text-anchor values to CSS text-align values
-        const textAlignMap = {
-          start: 'left',
-          middle: 'center',
-          end: 'right',
-          justify: 'justify'
-        }
-
-        const textAlign = textAlignMap[value] || 'left'
-        textDiv.style.textAlign = textAlign
+        // Set the text-anchor value directly on the div using CSS text-align
+        textUtils.setTextAnchorOnDiv(textDiv, value)
       }
     })
   }
@@ -993,13 +978,11 @@ const setFontFamilyMethod = (val) => {
       // Handle regular text elements
       svgCanvas.changeSelectedAttribute('font-family', val, [el])
     } else if (isTextForeignObject(el)) {
-      // Handle foreignObject text elements
+      // Handle foreignObject text elements - store styling in div only
       const textDiv = getTextDiv(el)
       if (textDiv) {
-        textDiv.style.fontFamily = val
+        textUtils.setFontFamilyOnDiv(textDiv, val)
       }
-      // Also store font-family on foreignObject for persistence
-      svgCanvas.changeSelectedAttribute('font-family', val, [el])
     }
   })
 
@@ -1076,13 +1059,11 @@ const setFontSizeMethod = (val) => {
       // Handle regular text elements
       svgCanvas.changeSelectedAttribute('font-size', val, [el])
     } else if (isTextForeignObject(el)) {
-      // Handle foreignObject text elements
+      // Handle foreignObject text elements - store styling in div only
       const textDiv = getTextDiv(el)
       if (textDiv) {
-        textDiv.style.fontSize = val + 'px'
+        textUtils.setFontSizeOnDiv(textDiv, val)
       }
-      // Also store font-size on foreignObject for persistence
-      svgCanvas.changeSelectedAttribute('font-size', val, [el])
     }
   })
 

@@ -3,6 +3,7 @@
 
 import SvgCanvas from '@svgedit/svgcanvas'
 import topPanelHTML from './TopPanel.html'
+import * as textUtils from '../../../packages/svgcanvas/core/text-style-utils.js'
 
 const { $qa, $id, $click, isValidUnit, getTypeMap, convertUnit } = SvgCanvas
 
@@ -382,29 +383,26 @@ class TopPanel {
           this.displayTool('text_panel')
 
           if (tagName === 'foreignObject') {
-            // Handle foreignObject text
+            // Handle foreignObject text - read styling from div element directly
             const textDiv = elem.querySelector('div')
             if (textDiv) {
-              const computedStyle = window.getComputedStyle(textDiv)
+              // Read all styling information from the div element using our utilities
+              const divFontStyle = textUtils.getFontStyleFromDiv(textDiv)
+              const divFontWeight = textUtils.getFontWeightFromDiv(textDiv)
+              const divTextDecoration = textUtils.getTextDecorationFromDiv(textDiv)
+              const divFontFamily = textUtils.getFontFamilyFromDiv(textDiv)
+              const divTextAnchor = textUtils.getTextAnchorFromDiv(textDiv)
+              const divFontSize = textUtils.getFontSizeFromDiv(textDiv)
 
-              // Update text panel controls, prefer foreignObject attributes over computed styles
-              const foFontStyle = elem.getAttribute('font-style') || computedStyle.fontStyle
-              const foFontWeight = elem.getAttribute('font-weight') || computedStyle.fontWeight
-              const foTextDecoration = elem.getAttribute('text-decoration') || computedStyle.textDecoration || 'none'
-              const foFontFamily = elem.getAttribute('font-family') || computedStyle.fontFamily
-              const foTextAnchor = elem.getAttribute('text-anchor') || 'middle'
-
-              $id('tool_italic').pressed = foFontStyle === 'italic'
-              $id('tool_bold').pressed = foFontWeight === 'bold' || parseInt(foFontWeight) >= 700
-              $id('tool_text_decoration_underline').pressed = foTextDecoration.includes('underline')
-              $id('tool_text_decoration_linethrough').pressed = foTextDecoration.includes('line-through')
-              $id('tool_text_decoration_overline').pressed = foTextDecoration.includes('overline')
-              $id('tool_font_family').value = foFontFamily.replace(/['"]/g, '')
-              $id('tool_text_anchor').setAttribute('value', foTextAnchor)
-
-              // Try to get font-size from foreignObject attribute first, fallback to computed style
-              const fontSize = parseInt(elem.getAttribute('font-size')) || parseInt(computedStyle.fontSize) || 16
-              $id('font_size').value = fontSize
+              // Update UI controls based on div styles
+              $id('tool_italic').pressed = divFontStyle === 'italic'
+              $id('tool_bold').pressed = divFontWeight === 'bold' || parseInt(divFontWeight) >= 700
+              $id('tool_text_decoration_underline').pressed = divTextDecoration.includes('underline')
+              $id('tool_text_decoration_linethrough').pressed = divTextDecoration.includes('line-through')
+              $id('tool_text_decoration_overline').pressed = divTextDecoration.includes('overline')
+              $id('tool_font_family').value = divFontFamily
+              $id('tool_text_anchor').setAttribute('value', divTextAnchor)
+              $id('font_size').value = Math.round(divFontSize)
               $id('tool_letter_spacing').value = 0 // Not supported yet
               $id('tool_word_spacing').value = 0 // Not supported yet
               $id('tool_text_length').value = 0 // Not applicable
