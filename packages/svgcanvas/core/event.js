@@ -1382,7 +1382,7 @@ const mouseDownEvent = (evt) => {
       div.style.fontStyle = 'normal'
       div.style.textDecoration = 'none'
       div.style.display = 'block'
-      div.style.whiteSpace = 'pre-wrap'
+      // div.style.whiteSpace = 'pre-wrap'
       // div.style.wordWrap = 'break-word'
       div.style.overflowWrap = 'break-word'
       div.style.padding = '4px'
