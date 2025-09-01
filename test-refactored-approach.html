@@ -13,124 +13,123 @@
 <body>
     <h1>Test Refactored Text Styling Approach</h1>
     <p><strong>This test verifies that styling information is stored exclusively in div style attributes, not foreignObject attributes.</strong></p>
-    
+
     <div class="test-section">
         <h3>Test 1: Create foreignObject text with styling stored in div</h3>
         <div id="test1-container"></div>
         <div id="test1-result"></div>
     </div>
-    
+
     <div class="test-section">
         <h3>Test 2: Serialize and deserialize - styles should persist</h3>
         <div id="test2-serialized"></div>
         <div id="test2-container"></div>
         <div id="test2-result"></div>
     </div>
-    
+
     <div class="test-section">
         <h3>Test 3: Verify foreignObject has no styling attributes</h3>
         <div id="test3-result"></div>
     </div>
-    
+
     <script type="module">
         // Test the refactored approach
-        
+
         // Test 1: Create a foreignObject with text styling in div
         function test1() {
             const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
             svg.setAttribute('width', '400');
             svg.setAttribute('height', '200');
-            
+
             const foreignObject = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
             foreignObject.setAttribute('x', '50');
             foreignObject.setAttribute('y', '50');
             foreignObject.setAttribute('width', '300');
             foreignObject.setAttribute('height', '50');
             foreignObject.setAttribute('se:type', 'text');
-            
+
             const div = document.createElement('div');
             div.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
             div.style.cssText = `
-                width: 100%; 
-                height: 100%; 
-                font-size: 18px; 
-                font-family: 'Georgia'; 
-                font-weight: bold; 
-                font-style: italic; 
-                text-align: left; 
-                color: blue; 
+                width: 100%;
+                height: 100%;
+                font-size: 18px;
+                font-family: 'Georgia';
+                font-weight: bold;
+                font-style: italic;
+                text-align: left;
+                color: blue;
                 text-decoration: underline;
-                display: block; 
-                white-space: pre-wrap; 
-                padding: 4px; 
+                display: block;
+                padding: 4px;
                 box-sizing: border-box;
                 border: 1px solid green;
             `;
             div.textContent = 'This text has styling stored in DIV only';
-            
+
             foreignObject.appendChild(div);
             svg.appendChild(foreignObject);
             document.getElementById('test1-container').appendChild(svg);
-            
+
             // Verify styling is in div, not foreignObject
-            const hasDivStyles = div.style.textAlign === 'left' && 
+            const hasDivStyles = div.style.textAlign === 'left' &&
                                div.style.fontWeight === 'bold' &&
                                div.style.fontStyle === 'italic' &&
                                div.style.color === 'blue';
-                               
-            const hasFOAttributes = foreignObject.getAttribute('font-weight') || 
+
+            const hasFOAttributes = foreignObject.getAttribute('font-weight') ||
                                   foreignObject.getAttribute('font-style') ||
                                   foreignObject.getAttribute('text-anchor') ||
                                   foreignObject.getAttribute('font-family');
-                                  
+
             document.getElementById('test1-result').innerHTML = `
                 <div class="${hasDivStyles && !hasFOAttributes ? 'success' : 'error'}">
-                    <strong>Test 1:</strong> Div has styles: ${hasDivStyles ? '✓' : '✗'}, 
-                    ForeignObject has attributes: ${hasFOAttributes ? '✗' : '✓'} 
+                    <strong>Test 1:</strong> Div has styles: ${hasDivStyles ? '✓' : '✗'},
+                    ForeignObject has attributes: ${hasFOAttributes ? '✗' : '✓'}
                     ${hasDivStyles && !hasFOAttributes ? 'PASS' : 'FAIL'}
                 </div>
             `;
-            
+
             return svg;
         }
-        
+
         // Test 2: Serialize and deserialize
         function test2(testSvg) {
             const serializer = new XMLSerializer();
             const svgString = serializer.serializeToString(testSvg);
-            
+
             document.getElementById('test2-serialized').innerHTML = `<strong>Serialized SVG:</strong><pre style="font-size: 12px; max-height: 200px; overflow: auto;">${svgString.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>`;
-            
+
             // Parse it back
             const parser = new DOMParser();
             const doc = parser.parseFromString(svgString, 'image/svg+xml');
             const loadedSvg = doc.documentElement.cloneNode(true);
-            
+
             document.getElementById('test2-container').appendChild(loadedSvg);
-            
+
             // Check if styles were preserved
             const loadedFO = loadedSvg.querySelector('foreignObject[se\\:type="text"]');
             const loadedDiv = loadedFO ? loadedFO.querySelector('div') : null;
-            
+
             if (loadedDiv) {
-                const stylesPreserved = loadedDiv.style.textAlign === 'left' && 
+                const stylesPreserved = loadedDiv.style.textAlign === 'left' &&
                                       loadedDiv.style.fontWeight === 'bold' &&
                                       loadedDiv.style.fontStyle === 'italic' &&
                                       loadedDiv.style.color === 'blue';
-                                      
-                const foHasAttributes = loadedFO.getAttribute('font-weight') || 
+
+                const foHasAttributes = loadedFO.getAttribute('font-weight') ||
                                       loadedFO.getAttribute('font-style') ||
                                       loadedFO.getAttribute('text-anchor') ||
                                       loadedFO.getAttribute('font-family');
-                                      
+
                 document.getElementById('test2-result').innerHTML = `
                     <div class="${stylesPreserved && !foHasAttributes ? 'success' : 'error'}">
-                        <strong>Test 2:</strong> Styles preserved after serialize/deserialize: ${stylesPreserved ? '✓' : '✗'}, 
-                        FO still clean: ${!foHasAttributes ? '✓' : '✗'} 
+                        <strong>Test 2:</strong> Styles preserved after serialize/deserialize: ${stylesPreserved ? '✓' : '✗'},
+                        FO still clean: ${!foHasAttributes ? '✓' : '✗'}
                         ${stylesPreserved && !foHasAttributes ? 'PASS' : 'FAIL'}
                     </div>
                 `;
-                
+
                 return { loadedFO, loadedDiv };
             } else {
                 document.getElementById('test2-result').innerHTML = `
@@ -141,27 +140,27 @@
                 return null;
             }
         }
-        
+
         // Test 3: Verify foreignObject is clean
         function test3(result) {
             if (!result) return;
-            
+
             const { loadedFO } = result;
-            
+
             // List of attributes that should NOT be on foreignObject
             const forbiddenAttrs = [
                 'font-family', 'font-size', 'font-weight', 'font-style',
                 'text-decoration', 'text-anchor', 'fill', 'color'
             ];
-            
-            const foundForbiddenAttrs = forbiddenAttrs.filter(attr => 
+
+            const foundForbiddenAttrs = forbiddenAttrs.filter(attr =>
                 loadedFO.getAttribute(attr) !== null
             );
-            
-            const allAttributes = Array.from(loadedFO.attributes).map(attr => 
+
+            const allAttributes = Array.from(loadedFO.attributes).map(attr =>
                 `${attr.name}="${attr.value}"`
             );
-            
+
             document.getElementById('test3-result').innerHTML = `
                 <div class="${foundForbiddenAttrs.length === 0 ? 'success' : 'error'}">
                     <strong>Test 3:</strong> ForeignObject is clean of styling attributes: ${foundForbiddenAttrs.length === 0 ? '✓ PASS' : '✗ FAIL'}
@@ -170,7 +169,7 @@
                 </div>
             `;
         }
-        
+
         // Run tests
         const testSvg = test1();
         setTimeout(() => {

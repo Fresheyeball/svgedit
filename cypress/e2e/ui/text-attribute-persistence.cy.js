@@ -296,7 +296,7 @@ describe('Text Attribute Persistence Tests', { testIsolation: false }, function 
                       font-size="18" font-family="Georgia" font-weight="bold" 
                       font-style="italic" fill="red" text-anchor="middle" 
                       text-decoration="underline">
-        <div xmlns="http://www.w3.org/1999/xhtml" style="width: 100%; height: 100%; display: block; white-space: pre-wrap; overflow-wrap: break-word; padding: 4px; box-sizing: border-box; cursor: text; min-height: 100%; outline: none;">Attributes Only Text</div>
+        <div xmlns="http://www.w3.org/1999/xhtml" style="width: 100%; height: 100%; display: block; overflow-wrap: break-word; padding: 4px; box-sizing: border-box; cursor: text; min-height: 100%; outline: none;">Attributes Only Text</div>
        </foreignObject>
        </g>
      </svg>`, { force: true, parseSpecialCharSequences: false })
@@ -324,7 +324,7 @@ describe('Text Attribute Persistence Tests', { testIsolation: false }, function 
        <foreignObject x="100" y="100" width="200" height="40" se:type="text" 
                       font-size="22" font-family="Arial" font-weight="bold" 
                       font-style="italic" text-anchor="end">
-        <div xmlns="http://www.w3.org/1999/xhtml" style="width: 100%; height: 100%; font-family: Arial; font-size: 22px; font-weight: bold; font-style: italic; text-align: right; display: block; white-space: pre-wrap; overflow-wrap: break-word; padding: 4px; box-sizing: border-box; cursor: text; min-height: 100%; outline: none;">Panel State Test</div>
+        <div xmlns="http://www.w3.org/1999/xhtml" style="width: 100%; height: 100%; font-family: Arial; font-size: 22px; font-weight: bold; font-style: italic; text-align: right; display: block; overflow-wrap: break-word; padding: 4px; box-sizing: border-box; cursor: text; min-height: 100%; outline: none;">Panel State Test</div>
        </foreignObject>
        </g>
      </svg>`, { force: true, parseSpecialCharSequences: false })

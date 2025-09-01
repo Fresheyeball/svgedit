@@ -12,31 +12,31 @@
 <body>
     <h1>Test Immediate Text Alignment Fix</h1>
     <p>This simulates the exact process that happens in SVGEdit when loading SVG.</p>
-    
+
     <div class="test">
         <h3>Step 1: SVG String (as saved by SVGEdit)</h3>
         <pre id="svg-string"></pre>
     </div>
-    
+
     <div class="test">
         <h3>Step 2: After DOMParser.parseFromString + adoptNode (what SVGEdit does)</h3>
         <div id="parsed-svg"></div>
         <div id="parsed-result"></div>
     </div>
-    
+
     <div class="test">
         <h3>Step 3: After applying our immediate fix</h3>
         <div id="fixed-svg"></div>
         <div id="fixed-result"></div>
     </div>
-    
+
     <script>
         // Test SVG with text-anchor but potentially missing text-align style
         const testSvg = `<svg width="640" height="480" xmlns="http://www.w3.org/2000/svg" xmlns:se="http://svg-edit.googlecode.com">
   <g class="layer">
     <title>Layer 1</title>
     <foreignObject x="100" y="100" width="300" height="50" se:type="text" text-anchor="start" font-size="16">
-      <div xmlns="http://www.w3.org/1999/xhtml" style="width: 100%; height: 100%; font-size: 16px; display: block; white-space: pre-wrap; overflow-wrap: break-word; padding: 4px; box-sizing: border-box; cursor: text; min-height: 100%; outline: none; border: 1px solid blue;">
+      <div xmlns="http://www.w3.org/1999/xhtml" style="width: 100%; height: 100%; font-size: 16px; display: block; overflow-wrap: break-word; padding: 4px; box-sizing: border-box; cursor: text; min-height: 100%; outline: none; border: 1px solid blue;">
         This text should be LEFT aligned
       </div>
     </foreignObject>
@@ -44,43 +44,43 @@
 </svg>`;
 
         document.getElementById('svg-string').textContent = testSvg;
-        
+
         // Step 2: Simulate SVGEdit's parsing process
         const parser = new DOMParser();
         const newDoc = parser.parseFromString(testSvg, 'text/xml');
-        
+
         // Simulate adoptNode/importNode
-        const svgElement = document.adoptNode ? 
-            document.adoptNode(newDoc.documentElement) : 
+        const svgElement = document.adoptNode ?
+            document.adoptNode(newDoc.documentElement) :
             document.importNode(newDoc.documentElement, true);
-            
+
         document.getElementById('parsed-svg').appendChild(svgElement);
-        
+
         // Check result before fix
         setTimeout(() => {
             const fo = document.querySelector('#parsed-svg foreignObject[se\\:type="text"]');
             const div = fo ? fo.querySelector('div') : null;
-            
+
             if (div) {
                 const textAnchor = fo.getAttribute('text-anchor');
                 const textAlign = div.style.textAlign || '(empty)';
                 const computed = getComputedStyle(div).textAlign;
-                
+
                 const result = `text-anchor="${textAnchor}", inline textAlign="${textAlign}", computed="${computed}"`;
                 const isCorrect = computed === 'left';
-                
-                document.getElementById('parsed-result').innerHTML = 
+
+                document.getElementById('parsed-result').innerHTML =
                     `<div class="${isCorrect ? 'success' : 'error'}">${result} ${isCorrect ? '✓' : '✗'}</div>`;
-                
+
                 // Step 3: Apply our immediate fix
                 const fixedSvg = svgElement.cloneNode(true);
                 document.getElementById('fixed-svg').appendChild(fixedSvg);
-                
+
                 setTimeout(() => {
                     // Apply the same fix that's now in svg-exec.js
                     const content = document.getElementById('fixed-svg');
                     const foreignObjects = content.querySelectorAll('foreignObject[se\\:type="text"]');
-                    
+
                     foreignObjects.forEach(fo => {
                         const textDiv = fo.querySelector('div');
                         if (textDiv) {
@@ -91,22 +91,22 @@
                             }
                         }
                     });
-                    
+
                     // Check result after fix
                     const fixedFo = document.querySelector('#fixed-svg foreignObject[se\\:type="text"]');
                     const fixedDiv = fixedFo ? fixedFo.querySelector('div') : null;
-                    
+
                     if (fixedDiv) {
                         const textAnchor = fixedFo.getAttribute('text-anchor');
                         const textAlign = fixedDiv.style.textAlign || '(empty)';
                         const computed = getComputedStyle(fixedDiv).textAlign;
-                        
+
                         const result = `text-anchor="${textAnchor}", inline textAlign="${textAlign}", computed="${computed}"`;
                         const isCorrect = computed === 'left';
-                        
-                        document.getElementById('fixed-result').innerHTML = 
+
+                        document.getElementById('fixed-result').innerHTML =
                             `<div class="${isCorrect ? 'success' : 'error'}">${result} ${isCorrect ? '✓ FIXED!' : '✗ Still broken'}</div>`;
-                            
+
                         // Update border color to show visual feedback
                         fixedDiv.style.border = isCorrect ? '2px solid green' : '2px solid red';
                     }

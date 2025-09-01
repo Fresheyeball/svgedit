@@ -119,7 +119,7 @@ describe('Text Anchor CSS Synchronization', function () {
         <g class="layer">
           <title>Layer 1</title>
           <foreignObject x="100" y="100" width="200" height="40" se:type="text" text-anchor="end" font-size="16">
-            <div xmlns="http://www.w3.org/1999/xhtml" style="width: 100%; height: 100%; font-size: 16px; display: block; white-space: pre-wrap; overflow-wrap: break-word; padding: 4px; box-sizing: border-box; cursor: text; min-height: 100%; outline: none;">Loaded Text</div>
+            <div xmlns="http://www.w3.org/1999/xhtml" style="width: 100%; height: 100%; font-size: 16px; display: block; overflow-wrap: break-word; padding: 4px; box-sizing: border-box; cursor: text; min-height: 100%; outline: none;">Loaded Text</div>
           </foreignObject>
         </g>
       </svg>
