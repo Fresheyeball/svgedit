@@ -187,6 +187,12 @@ export const textActionsMethod = (function () {
     }
 
     const charbb = chardata[index]
+
+    // Check if charbb or textbb exists - they might not be populated for foreignObject text
+    if (!charbb || !textbb) {
+      return
+    }
+
     if (!empty) {
       textinput.setSelectionRange(index, index)
     }
@@ -267,6 +273,11 @@ export const textActionsMethod = (function () {
 
     const startbb = chardata[start]
     const endbb = chardata[end]
+
+    // Check if character data or textbb exists
+    if (!startbb || !endbb || !textbb) {
+      return
+    }
 
     cursor.setAttribute('visibility', 'hidden')
 

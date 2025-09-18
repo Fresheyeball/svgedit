@@ -39,8 +39,8 @@ export const getJsonFromSvgElements = (data) => {
   if (data.nodeType === 3) return data.nodeValue
 
   const retval = {
-    element: data.tagName,
-    // namespace: nsMap[data.namespaceURI],
+    element: data.localName || data.tagName,
+    namespace: data.namespaceURI,
     attr: {},
     children: []
   }
