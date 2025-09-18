@@ -1084,6 +1084,18 @@ const mouseDownEvent = (evt) => {
     mouseTarget = mouseTarget.firstChild
   }
 
+  // If we're in textedit mode and clicking outside the current text element, exit text mode
+  if (svgCanvas.getCurrentMode() === 'textedit') {
+    const currentText = selectedElements[0]
+    // Check if we clicked outside the current text element
+    if (currentText && mouseTarget !== currentText &&
+        !currentText.contains(mouseTarget)) {
+      // Exit text edit mode
+      svgCanvas.textActions.toSelectMode(true)
+      // Continue with normal mouseDown handling
+    }
+  }
+
   // realX/y ignores grid-snap value
   const realX = x
   svgCanvas.setStartX(x)

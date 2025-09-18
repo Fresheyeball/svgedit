@@ -674,6 +674,13 @@ export const textActionsMethod = (function () {
         currentTextDiv.removeEventListener('input', handleTextInput)
         currentTextDiv.removeEventListener('blur', handleTextBlur)
         currentTextDiv.removeEventListener('keydown', handleTextKeydown)
+
+        // Clear any native browser text selection
+        if (window.getSelection) {
+          const selection = window.getSelection()
+          selection.removeAllRanges()
+        }
+
         currentTextDiv.blur()
 
         // Check if empty and delete if so
