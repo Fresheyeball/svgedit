@@ -1399,7 +1399,7 @@ const mouseDownEvent = (evt) => {
       div.style.overflowWrap = 'break-word'
       div.style.padding = '4px'
       div.style.boxSizing = 'border-box'
-      div.style.cursor = 'text'
+      div.style.cursor = 'default'
       div.style.minHeight = '100%'
       div.style.outline = 'none'
       div.setAttribute('contenteditable', 'true')

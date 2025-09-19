@@ -602,7 +602,7 @@ export const textActionsMethod = (function () {
           // Ensure the div is properly set up for editing
           currentTextDiv.setAttribute('contenteditable', 'true')
           currentTextDiv.style.outline = 'none'
-          currentTextDiv.style.cursor = 'text'
+          currentTextDiv.style.cursor = 'default'
 
           // Enable editing on the div
           currentTextDiv.focus()
