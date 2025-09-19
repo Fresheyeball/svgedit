@@ -97,6 +97,12 @@ export const textActionsMethod = (function () {
     svgCanvas.textActions.toSelectMode(true)
   }
 
+  const handleTextClick = (evt) => {
+    // Allow normal cursor placement on click
+    // The browser handles this natively for contenteditable divs
+    evt.stopPropagation()
+  }
+
   const handleTextKeydown = (evt) => {
     // Handle escape key to exit edit mode
     if (evt.key === 'Escape') {
@@ -606,9 +612,10 @@ export const textActionsMethod = (function () {
 
           // Enable editing on the div
           currentTextDiv.focus()
-          // Select all text on first click
+          // Place cursor at the end of text instead of selecting all
           const range = document.createRange()
           range.selectNodeContents(currentTextDiv)
+          range.collapse(false) // false = collapse to end
           const selection = window.getSelection()
           selection.removeAllRanges()
           selection.addRange(range)
@@ -617,11 +624,13 @@ export const textActionsMethod = (function () {
           currentTextDiv.removeEventListener('input', handleTextInput)
           currentTextDiv.removeEventListener('blur', handleTextBlur)
           currentTextDiv.removeEventListener('keydown', handleTextKeydown)
+          currentTextDiv.removeEventListener('click', handleTextClick)
 
           // Add event listeners for content changes
           currentTextDiv.addEventListener('input', handleTextInput)
           currentTextDiv.addEventListener('blur', handleTextBlur)
           currentTextDiv.addEventListener('keydown', handleTextKeydown)
+          currentTextDiv.addEventListener('click', handleTextClick)
 
           // Ensure the foreignObject is properly sized for the current content
           setTimeout(() => {
@@ -674,6 +683,7 @@ export const textActionsMethod = (function () {
         currentTextDiv.removeEventListener('input', handleTextInput)
         currentTextDiv.removeEventListener('blur', handleTextBlur)
         currentTextDiv.removeEventListener('keydown', handleTextKeydown)
+        currentTextDiv.removeEventListener('click', handleTextClick)
 
         // Clear any native browser text selection
         if (window.getSelection) {
